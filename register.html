@@ -60,7 +60,7 @@
       const start_date = document.getElementById('start_date').value || null;
       const end_date = document.getElementById('end_date').value || null;
 
-      // إنشاء مستخدم في نظام المصادقة
+      // 1️⃣ إنشاء حساب في Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password
@@ -71,29 +71,9 @@
         return;
       }
 
-      // حفظ بيانات إضافية في جدول users
-      const { error: dbError } = await supabase
-        .from('users')
-        .insert([{
-          username_en,
-          full_name_ar,
-          email,
-          phone,
-          company,
-          birth_date,
-          role,
-          subscription_start: start_date,
-          subscription_end: end_date
-        }]);
+      // الحصول على user_id من Supabase Auth
+      const user_id = authData.user?.id;
 
-      if (dbError) {
-        alert("تم إنشاء الحساب ولكن حدث خطأ في حفظ البيانات الإضافية.");
-        console.error(dbError);
-      } else {
-        alert("تم إنشاء الحساب بنجاح ✅");
-        window.location.href = "login.html";
-      }
-    }
-  </script>
-</body>
-</html>
+      // 2️⃣ تحديد role_id حسب الاختيار
+      let role_id = null;
+      if (rol
