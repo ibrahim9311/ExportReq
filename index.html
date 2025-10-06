@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الاشتراطات التصديرية للمحاصيل الزراعية</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #222;
+    }
+    header {
+      background: #006837;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 1.4rem;
+    }
+    main {
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input, select, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0 14px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      background: #006837;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #004f2d;
+    }
+    footer {
+      text-align: center;
+      color: #666;
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    نظام عرض الاشتراطات التصديرية
+  </header>
+
+  <main>
+    <h2>بحث عن اشتراطات المحاصيل</h2>
+    <form id="searchForm">
+      <label>الدولة:</label>
+      <input type="text" id="country" placeholder="مثلاً: تركيا" />
+      <label>اسم المحصول:</label>
+      <input type="text" id="crop" placeholder="مثلاً: رمان" />
+      <button type="submit">بحث</button>
+    </form>
+
+    <div id="results"></div>
+  </main>
+
+  <footer>
+    © 2025 - مشروع تكويد المزارع
+  </footer>
+
+  <script>
+    // مثال لربط Supabase لاحقاً
+    // const supabaseUrl = "https://xxxxxx.supabase.co";
+    // const supabaseKey = "your-anon-key";
+    // const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const form = document.getElementById('searchForm');
+    const results = document.getElementById('results');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const country = document.getElementById('country').value;
+      const crop = document.getElementById('crop').value;
+      results.innerHTML = <p>نتائج البحث عن <b>${crop}</b> في <b>${country}</b>...</p>;
+    });
+  </script>
+</body>
+</html>
