@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل حساب جديد</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {font-family: sans-serif; text-align:center; margin:40px;}
+    input, select {padding:8px; margin:6px; width:250px;}
+    button {padding:10px 20px; margin-top:10px; cursor:pointer;}
+  </style>
+</head>
+<body>
+  <h2>🧾 تسجيل حساب جديد</h2>
+
+  <form id="registerForm" onsubmit="register(event)">
+    <input type="text" id="username_en" placeholder="اسم المستخدم (إنجليزي)" required><br>
+    <input type="text" id="full_name_ar" placeholder="الاسم الكامل بالعربية" required><br>
+    <input type="email" id="email" placeholder="البريد الإلكتروني" required><br>
+    <input type="password" id="password" placeholder="كلمة المرور" required><br>
+    <input type="text" id="phone" placeholder="رقم الهاتف"><br>
+    <input type="text" id="company" placeholder="الشركة / الجهة"><br>
+    <input type="date" id="birth_date" placeholder="تاريخ الميلاد"><br>
+
+    <label>الصلاحية:</label>
+    <select id="role" required>
+      <option value="viewer">عرض فقط</option>
+      <option value="data_entry">إضافة بيانات فقط</option>
+      <option value="supervisor">إضافة وتعديل (بدون إدارة مستخدمين)</option>
+      <option value="admin">مدير النظام</option>
+    </select><br>
+
+    <label>بداية الاشتراك:</label>
+    <input type="date" id="start_date"><br>
+
+    <label>نهاية الاشتراك:</label>
+    <input type="date" id="end_date"><br>
+
+    <button type="submit">إنشاء الحساب</button>
+  </form>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uulzslgyqygvtpfgeecr.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ"
+    );
+
+    async function register(e) {
+      e.preventDefault();
+
+      const username_en = document.getElementById('username_en').value.trim();
+      const full_name_ar = document.getElementById('full_name_ar').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone').value.trim();
+      const company = document.getElementById('company').value.trim();
+      const birth_date = document.getElementById('birth_date').value;
+      const role = document.getElementById('role').value;
+      const start_date = document.getElementById('start_date').value || null;
+      const end_date = document.getElementById('end_date').value || null;
+
+      // إنشاء مستخدم في نظام المصادقة
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password
+      });
+
+      if (authError) {
+        alert("خطأ أثناء إنشاء الحساب: " + authError.message);
+        return;
+      }
+
+      // حفظ بيانات إضافية في جدول users
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([{
+          username_en,
+          full_name_ar,
+          email,
+          phone,
+          company,
+          birth_date,
+          role,
+          subscription_start: start_date,
+          subscription_end: end_date
+        }]);
+
+      if (dbError) {
+        alert("تم إنشاء الحساب ولكن حدث خطأ في حفظ البيانات الإضافية.");
+        console.error(dbError);
+      } else {
+        alert("تم إنشاء الحساب بنجاح ✅");
+        window.location.href = "login.html";
+      }
+    }
+  </script>
+</body>
+</html>
