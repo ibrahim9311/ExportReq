@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الصفحة الرئيسية</title>
+  <style>
+    body { font-family: "Tajawal", sans-serif; background: #f0f2f5; text-align: center; padding-top: 100px; }
+    h2 { color: #333; }
+    button { margin: 10px; padding: 15px 25px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; color: white; }
+    .search { background-color: #28a745; }
+    .add { background-color: #007bff; }
+    button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <h2>مرحبًا بك 👋</h2>
+  <button class="search" onclick="window.location.href='search.html'">🔍 البحث</button>
+  <button class="add" onclick="window.location.href='add_requirement.html'">📝 تسجيل اشتراط</button>
+  <br><br>
+  <button onclick="logout()" style="background:#dc3545;">تسجيل الخروج</button>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      window.location.href = "login.html";
+    }
+
+    function logout() {
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
