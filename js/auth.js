@@ -1,112 +1,87 @@
-// ===========================
-// إعداد اتصال Supabase
-// ===========================
-const SUPABASE_URL = "https://uulzslgyqygvtpfgeecr.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
+// js/auth.js - authentication and profile logic
+async function signUpUser(e) {
+  e.preventDefault();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  if (!email || !password) return alert('اكمل الحقول المطلوبة');
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ===========================
-// تسجيل حساب جديد
-// ===========================
-async function signUpUser(event) {
-  event.preventDefault();
-  const email = document.getElementById("signup-email").value;
-  const password = document.getElementById("signup-password").value;
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-
+  const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) {
-    if (error.message.includes("already registered")) {
-      alert("⚠️ هذا البريد الإلكتروني مسجل مسبقًا. يُرجى تسجيل الدخول بدلًا من إنشاء حساب جديد.");
-      window.location.href = "/login.html";
-    } else {
-      alert("حدث خطأ أثناء إنشاء الحساب: " + error.message);
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('already registered') || msg.includes('user already exists')) {
+      alert('هذا البريد مسجل بالفعل، سيتم تحويلك إلى صفحة تسجيل الدخول.');
+      window.location.href = 'login.html';
+      return;
     }
+    alert('خطأ أثناء التسجيل: ' + (error.message || JSON.stringify(error)));
+    return;
+  }
+  alert('تم إنشاء الحساب! تم إرسال رسالة تفعيل إلى بريدك. بعد التفعيل سجل الدخول.');
+  window.location.href = 'login.html';
+}
+
+async function signInUser(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return alert('اكمل الحقول المطلوبة');
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    alert('خطأ في البريد أو كلمة المرور: ' + (error.message || ''));
+    console.error(error);
     return;
   }
 
-  alert("✅ تم إرسال رسالة التفعيل إلى بريدك الإلكتروني. يرجى التحقق منها لتفعيل الحساب.");
-  window.location.href = "/login.html";
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!user) {
+    alert('حدث خطأ: لم يتم التعرف على المستخدم بعد تسجيل الدخول.');
+    return;
+  }
+
+  const { data: profile, error: pErr } = await supabase.from('profiles').select('id,role_id,full_name_ar').eq('id', user.id).maybeSingle();
+  if (pErr) console.error('profile fetch error', pErr);
+
+  if (profile && profile.id) {
+    window.location.href = 'requirements.html';
+  } else {
+    window.location.href = 'complete-profile.html';
+  }
 }
 
-// ===========================
-// تسجيل الدخول
-// ===========================
-async function signInUser(event) {
-  event.preventDefault();
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
+async function submitProfile() {
+  const userResp = await supabase.auth.getUser();
+  const user = userResp.data.user;
+  if (!user) {
+    alert('الرجاء تسجيل الدخول أولًا');
+    window.location.href = 'login.html';
+    return;
+  }
+  const payload = {
+    id: user.id,
+    full_name_ar: document.getElementById('full_name_ar').value.trim(),
+    client_number: document.getElementById('client_number').value.trim() || null,
+    company_name: document.getElementById('company_name').value.trim() || null,
+    phone_number: document.getElementById('phone_number').value.trim() || null,
+    role_id: 4,
+    is_active: true
+  };
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: email,
-    password: password,
-  });
-
+  const { data, error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
   if (error) {
-    alert("خطأ في البريد أو كلمة المرور");
-  } else {
-    alert("تم تسجيل الدخول بنجاح ✅");
-
-// التحقق من وجود ملف شخصي
-const user = (await supabase.auth.getUser()).data.user;
-
-if (!user) {
-  alert("حدث خطأ أثناء جلب بيانات المستخدم.");
-  return;
-}
-
-// التحقق من وجود سجل في profiles
-const { data: profile, error: profileError } = await supabase
-  .from("profiles")
-  .select("id")
-  .eq("id", user.id)
-  .maybeSingle();
-
-if (profileError) {
-  console.error("خطأ أثناء التحقق من الملف الشخصي:", profileError);
-  alert("حدث خطأ غير متوقع.");
-  return;
-}
-
-if (profile) {
-  // المستخدم لديه بيانات مكتملة
-  window.location.href = "/index.html";
-} else {
-  // لا يوجد ملف شخصي → الانتقال لإكمال البيانات
-  window.location.href = "/complete-profile.html";
-}
-
+    console.error('upsert profile error', error);
+    alert('حدث خطأ أثناء حفظ الملف الشخصي: ' + (error.message || ''));
+    return;
   }
+  alert('تم حفظ ملفك الشخصي بنجاح');
+  window.location.href = 'requirements.html';
 }
 
-// ===========================
-// التحقق من الجلسة الحالية
-// ===========================
-async function checkSession() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    console.log("مستخدم حالي:", user.email);
-  } else {
-    console.log("لا يوجد مستخدم مسجل دخول.");
+async function requireAuthRedirect(to='login.html') {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) {
+    window.location.href = to;
+    return null;
   }
+  return data.session.user;
 }
-
-// ===========================
-// تسجيل الخروج
-// ===========================
-async function logoutUser() {
-  await supabase.auth.signOut();
-  alert("تم تسجيل الخروج بنجاح");
-  window.location.href = "/index.html";
-}
-
-// استدعاء التحقق من الجلسة عند تحميل الصفحة
-checkSession();
