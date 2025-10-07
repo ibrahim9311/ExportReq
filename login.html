@@ -4,37 +4,82 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تسجيل الدخول</title>
+  <style>
+    body {
+      font-family: "Tajawal", sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #4facfe;
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background: #00c0ff;
+    }
+  </style>
 </head>
 <body>
-  <h2>تسجيل الدخول</h2>
-
-  <form id="loginForm">
-    <label>البريد الإلكتروني:</label>
-    <input type="email" id="email" required><br><br>
-
-    <label>كلمة المرور:</label>
-    <input type="password" id="password" required><br><br>
-
-    <button type="submit">دخول</button>
-  </form>
+  <div class="login-box">
+    <h2>تسجيل الدخول</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="البريد الإلكتروني" required />
+      <input type="password" id="password" placeholder="كلمة المرور" required />
+      <button type="submit">دخول</button>
+    </form>
+  </div>
 
   <script type="module">
-    import { supabase } from 'supabase.js';
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    const form = document.getElementById('loginForm');
-    form.addEventListener('submit', async (e) => {
+    const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       if (error) {
-        alert('حدث خطأ: ' + error.message);
+        alert('❌ خطأ في تسجيل الدخول: ' + error.message);
+        console.error(error);
       } else {
-        alert('تم تسجيل الدخول بنجاح ✅');
-        console.log('User:', data.user);
+        alert('✅ تم تسجيل الدخول بنجاح!');
+        console.log(data);
+        // يمكنك إعادة توجيه المستخدم هنا إلى صفحة أخرى:
+        // window.location.href = "/dashboard.html";
       }
     });
   </script>

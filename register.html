@@ -4,47 +4,96 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>إنشاء حساب جديد</title>
+  <style>
+    body {
+      font-family: "Tajawal", sans-serif;
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .register-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #43e97b;
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background: #2fd58a;
+    }
+    a {
+      color: #0077ff;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-  <h2>إنشاء حساب جديد</h2>
-
-  <form id="registerForm">
-    <label>الاسم الكامل:</label>
-    <input type="text" id="full_name" required><br><br>
-
-    <label>البريد الإلكتروني:</label>
-    <input type="email" id="email" required><br><br>
-
-    <label>كلمة المرور:</label>
-    <input type="password" id="password" required><br><br>
-
-    <button type="submit">تسجيل</button>
-  </form>
+  <div class="register-box">
+    <h2>إنشاء حساب جديد</h2>
+    <form id="registerForm">
+      <input type="text" id="full_name" placeholder="الاسم الكامل" required />
+      <input type="email" id="email" placeholder="البريد الإلكتروني" required />
+      <input type="password" id="password" placeholder="كلمة المرور" required />
+      <button type="submit">تسجيل</button>
+    </form>
+    <p>هل لديك حساب؟ <a href="login.html">تسجيل الدخول</a></p>
+  </div>
 
   <script type="module">
-    import { supabase } from 'supabase.js';
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    const form = document.getElementById('registerForm');
-    form.addEventListener('submit', async (e) => {
+    // إعداد Supabase
+    const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // عند الضغط على زر التسجيل
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const full_name = document.getElementById('full_name').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
+      // إنشاء الحساب في Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name }
+          data: { full_name } // يُحفظ كـ metadata
         }
       });
 
       if (error) {
-        alert('حدث خطأ أثناء التسجيل: ' + error.message);
+        alert('❌ خطأ أثناء التسجيل: ' + error.message);
+        console.error(error);
       } else {
-        alert('تم إنشاء الحساب بنجاح ✅ تحقق من بريدك الإلكتروني');
-        console.log('User:', data.user);
+        alert('✅ تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
+        console.log('User created:', data.user);
+
+        // يمكنك توجيه المستخدم تلقائيًا إلى صفحة تسجيل الدخول:
+        // window.location.href = "/login.html";
       }
     });
   </script>
