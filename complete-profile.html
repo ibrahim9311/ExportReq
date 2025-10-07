@@ -22,7 +22,7 @@
       width: 400px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-    input, select {
+    input {
       width: 100%;
       padding: 10px;
       margin: 8px 0;
@@ -82,22 +82,3 @@
         company_name: document.getElementById('company_name').value,
         phone_number: document.getElementById('phone_number').value,
         birth_date: document.getElementById('birth_date').value,
-      };
-
-      // إدخال البيانات في جدول profiles
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(dataToInsert, { onConflict: 'id' });
-
-      if (error) {
-        alert('حدث خطأ أثناء حفظ البيانات: ' + error.message);
-        console.error(error);
-      } else {
-        alert('✅ تم حفظ بياناتك بنجاح!');
-        // يمكنك توجيه المستخدم الآن إلى الصفحة الرئيسية
-        // window.location.href = "/dashboard.html";
-      }
-    });
-  </script>
-</body>
-</html>
