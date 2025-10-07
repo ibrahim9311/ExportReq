@@ -1,32 +1,99 @@
-/* css/style.css */
-@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css');
-
+/* =======================
+   الأساس العام للموقع
+======================= */
 body {
+  background: linear-gradient(135deg, #e8edf3, #f7f9fc);
+  color: #1b263b;
   font-family: "Tajawal", sans-serif;
-  background: linear-gradient(135deg, #0d1b2a, #1b263b);
-  color: #f8f9fa;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  direction: rtl;
 }
 
-.card-rounded {
+/* =======================
+   العناوين والنصوص
+======================= */
+h1, h2, h3, h4, h5, h6 {
+  color: #1b263b;
+  font-weight: 700;
+}
+
+p, label, span {
+  color: #24344d;
+  font-weight: 400;
+}
+
+/* =======================
+   البطاقات والنماذج
+======================= */
+.card {
+  background: #ffffff;
+  border: none;
   border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 30px;
 }
 
-/* small utilities */
-.link-light { color: #cfe8ff; }
-input, textarea, select {
-  background-color: #24344d !important;
-  color: #fff !important;
-  border: 1px solid #465a7c !important;
+.form-control {
+  background-color: #ffffff;
+  color: #1b263b;
+  border: 1px solid #ccd6e0;
+  border-radius: 0.5rem;
+  padding: 10px 14px;
+  font-size: 1rem;
 }
+
+.form-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* =======================
+   الأزرار
+======================= */
 .btn-primary {
   background-color: #2563eb;
   border: none;
-}
-.btn-outline-light {
   color: #fff;
-  border-color: #6c757d;
+  border-radius: 0.5rem;
+  padding: 10px 18px;
+  font-size: 1rem;
+  transition: 0.2s;
 }
-.card {
-  background: rgba(255,255,255,0.08) !important;
+
+.btn-primary:hover {
+  background-color: #1e4ed8;
+}
+
+.btn-outline-light {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-outline-light:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+/* =======================
+   روابط وتذييل
+======================= */
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* =======================
+   تنسيق مركزي للصفحات
+======================= */
+.page-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
