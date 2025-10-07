@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>استكمال البيانات - ExportReq</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="d-flex align-items-center justify-content-center">
+  <div class="card card-rounded p-4 shadow" style="width:520px;background:rgba(255,255,255,0.03);">
+    <h3 class="mb-3 text-center">استكمال بيانات الحساب</h3>
+    <form id="profileForm">
+      <div class="mb-3">
+        <label class="form-label">اسمك الكامل (بالعربية)</label>
+        <input type="text" id="full_name_ar" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">رقم العميل (اختياري)</label>
+        <input type="text" id="client_number" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">اسم الشركة (اختياري)</label>
+        <input type="text" id="company_name" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">رقم الجوال (اختياري)</label>
+        <input type="tel" id="phone_number" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">تاريخ الميلاد (اختياري)</label>
+        <input type="date" id="birth_date" class="form-control">
+      </div>
+      <button class="btn btn-primary w-100" type="submit">حفظ وإكمال</button>
+    </form>
+  </div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// restore session from hash if redirected
+const params = new URLSearchParams(window.location.hash.substring(1));
+const access_token = params.get('access_token');
+const refresh_token = params.get('refresh_token');
+(async () => {
+  if (access_token && refresh_token) {
+    await supabase.auth.setSession({ access_token, refresh_token });
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+})();
+
+async function getUser() {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) { console.error(error); return null; }
+  return data.user;
+}
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const user = await getUser();
+  if (!user) {
+    alert('لم نتمكن من تحديد حسابك. يرجى تسجيل الدخول.');
+    window.location.href = 'login.html';
+    return;
+  }
+  const payload = {
+    id: user.id,
+    full_name_ar: document.getElementById('full_name_ar').value,
+    client_number: document.getElementById('client_number').value || null,
+    company_name: document.getElementById('company_name').value || null,
+    phone_number: document.getElementById('phone_number').value || null,
+    birth_date: document.getElementById('birth_date').value || null,
+    role_id: 4
+  };
+  const { data, error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+  if (error) {
+    console.error('upsert error', error);
+    alert('حدث خطأ أثناء حفظ البيانات: ' + error.message);
+    return;
+  }
+  alert('تم حفظ البيانات بنجاح');
+  window.location.href = 'dashboard.html';
+});
+</script>
+</body>
+</html>
