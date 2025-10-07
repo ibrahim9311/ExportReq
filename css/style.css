@@ -14,3 +14,19 @@ body {
 
 /* small utilities */
 .link-light { color: #cfe8ff; }
+input, textarea, select {
+  background-color: #24344d !important;
+  color: #fff !important;
+  border: 1px solid #465a7c !important;
+}
+.btn-primary {
+  background-color: #2563eb;
+  border: none;
+}
+.btn-outline-light {
+  color: #fff;
+  border-color: #6c757d;
+}
+.card {
+  background: rgba(255,255,255,0.08) !important;
+}
