@@ -18,7 +18,7 @@
     <input type="text" id="username_en" placeholder="اسم المستخدم (إنجليزي)" required><br>
     <input type="text" id="full_name_ar" placeholder="الاسم الكامل بالعربية" required><br>
     <input type="email" id="email" placeholder="البريد الإلكتروني" required><br>
-    <input type="password" id="password" placeholder="كلمة المرور" required autocomplete="new-password"><br>
+    <input type="password" id="password" placeholder="كلمة المرور" required><br>
     <input type="text" id="phone" placeholder="رقم الهاتف"><br>
     <input type="text" id="company" placeholder="الشركة / الجهة"><br>
     <input type="date" id="birth_date" placeholder="تاريخ الميلاد"><br>
@@ -41,10 +41,9 @@
   </form>
 
   <script>
-    // إنشاء اتصال بـ Supabase
     const supabase = window.supabase.createClient(
       "https://uulzslgyqygvtpfgeecr.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ" // من Settings → API → anon public key
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ"
     );
 
     async function register(e) {
@@ -61,7 +60,7 @@
       const start_date = document.getElementById('start_date').value || null;
       const end_date = document.getElementById('end_date').value || null;
 
-      // 1️⃣ إنشاء مستخدم في Supabase Auth
+      // 1️⃣ إنشاء حساب في Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password
@@ -72,9 +71,10 @@
         return;
       }
 
-      const user_id = authData.user?.id; // معرف المستخدم في auth
+      // الحصول على user_id من Supabase Auth
+      const user_id = authData.user?.id;
 
-      // 2️⃣ تحديد role_id حسب الصلاحية
+      // 2️⃣ تحديد role_id حسب الاختيار
       let role_id = null;
       if (role === "viewer") role_id = 1;
       else if (role === "data_entry") role_id = 2;
@@ -88,7 +88,7 @@
           username_en,
           full_name_ar,
           email,
-          password, // مبدئيًا نخزنه نصيًا أو اجعل العمود يقبل NULL
+          password, // لو العمود موجود في الجدول
           phone_number: phone,
           company_name: company,
           birth_date,
@@ -98,12 +98,12 @@
         }]);
 
       if (userError) {
-        console.error("❌ خطأ أثناء إدخال المستخدم:", userError);
+        console.error(userError);
         alert("تم إنشاء الحساب ولكن حدث خطأ في حفظ البيانات الإضافية.");
         return;
       }
 
-      // 4️⃣ إدخال الاشتراك في جدول user_subscriptions
+      // 4️⃣ إضافة الاشتراك في جدول user_subscriptions (اختياري)
       if (start_date && end_date) {
         const { error: subError } = await supabase
           .from('user_subscriptions')
@@ -115,11 +115,10 @@
           }]);
 
         if (subError) {
-          console.error("⚠️ خطأ أثناء إدخال الاشتراك:", subError);
-          alert("تم حفظ المستخدم، لكن لم يتم حفظ بيانات الاشتراك.\n\n" + subError.message);
+          console.error(subError);
+          alert("تم حفظ المستخدم، لكن لم يتم حفظ بيانات الاشتراك.");
           return;
         }
-
       }
 
       // ✅ نجاح كامل
