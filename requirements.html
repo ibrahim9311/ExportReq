@@ -1,31 +1,194 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>الاشتراطات - ExportReq</title>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>قائمة الاشتراطات التصديرية</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background-color: #f5f8fa;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .logout-btn, .add-btn {
+      background-color: #00796b;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: "Cairo", sans-serif;
+      margin-left: 10px;
+    }
+
+    .logout-btn {
+      background-color: #e53935;
+    }
+
+    .logout-btn:hover {
+      background-color: #b71c1c;
+    }
+
+    .add-btn:hover {
+      background-color: #004d40;
+    }
+
+    .table-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #00796b;
+      color: #fff;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .no-data {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3>قائمة الاشتراطات</h3>
-      <div>
-        <input id="q" class="form-control search-input" placeholder="ابحث باسم المحصول أو الدولة..." />
-      </div>
+  <div class="header">
+    <h3>قائمة الاشتراطات التصديرية</h3>
+    <div>
+      <button class="add-btn" id="addBtn" style="display:none;">➕ إضافة اشتراط جديد</button>
+      <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
     </div>
-
-    <div class="mb-3" id="actions"></div>
-
-    <div class="card">
-      <div id="results" class="p-2"></div>
-    </div>
-
-    <div class="footer">منصة اشتراطات التصدير © 2025</div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-<script src="js/requirements.js"></script>
+  <div class="table-container">
+    <table id="requirementsTable">
+      <thead>
+        <tr>
+          <th>الدولة</th>
+          <th>المحصول</th>
+          <th>رقم النشر</th>
+          <th>سنة النشر</th>
+          <th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody id="requirementsBody">
+        <tr><td colspan="5" class="no-data">جاري تحميل البيانات...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const logoutBtn = document.getElementById("logoutBtn");
+    const addBtn = document.getElementById("addBtn");
+
+    // تسجيل الخروج
+    logoutBtn.addEventListener("click", async () => {
+      const { error } = await supabase.auth.signOut();
+      if (!error) window.location.href = "login.html";
+    });
+
+    // تحميل الاشتراطات
+    async function loadRequirements() {
+      const userRes = await supabase.auth.getUser();
+      const user = userRes.data.user;
+
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // جلب الدور من جدول profiles
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role_id")
+        .eq("id", user.id)
+        .single();
+
+      // إذا كان المستخدم مدير أو مشرف، أظهر زر الإضافة
+      if (profile && (profile.role_id === 1 || profile.role_id === 2)) {
+        addBtn.style.display = "inline-block";
+      }
+
+      // عند الضغط على زر الإضافة
+      addBtn.addEventListener("click", () => {
+        window.location.href = "add-requirement.html";
+      });
+
+      // تحميل الاشتراطات مع أسماء الدول والمحاصيل
+      const { data, error } = await supabase
+        .from("export_requirements")
+        .select(`
+          id,
+          publication_number,
+          publication_year,
+          notes,
+          countries (name_ar),
+          crops (name_ar)
+        `)
+        .order("id", { ascending: false });
+
+      const tableBody = document.getElementById("requirementsBody");
+      tableBody.innerHTML = "";
+
+      if (error) {
+        console.error(error);
+        tableBody.innerHTML = `<tr><td colspan="5" class="no-data">حدث خطأ أثناء تحميل البيانات.</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="no-data">لا توجد اشتراطات حالياً.</td></tr>`;
+        return;
+      }
+
+      data.forEach(req => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${req.countries?.name_ar || "-"}</td>
+          <td>${req.crops?.name_ar || "-"}</td>
+          <td>${req.publication_number || "-"}</td>
+          <td>${req.publication_year || "-"}</td>
+          <td>${req.notes || "-"}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    loadRequirements();
+  </script>
 </body>
 </html>
