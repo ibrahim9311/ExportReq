@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>البحث عن الاشتراطات</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="font-family: sans-serif; text-align:center; padding:20px;">
+  <h2>🔍 البحث عن الاشتراطات التصديرية</h2>
+
+  <input type="text" id="country" placeholder="اسم الدولة" style="padding:5px; margin:5px;" />
+  <input type="text" id="crop" placeholder="اسم المحصول" style="padding:5px; margin:5px;" />
+  <button onclick="searchData()">بحث</button>
+
+  <div id="results" style="margin-top:20px;"></div>
+
+  <script>
+    const supabase = window.supabase.createClient(
+      "https://uulzslgyqygvtpfgeecr.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ"
+    );
+
+    async function searchData() {
+      const country = document.getElementById('country').value.trim();
+      const crop = document.getElementById('crop').value.trim();
+
+      const { data, error } = await supabase
+        .from('export_requirements')
+        .select('*')
+        .ilike('country_name', %${country}%)
+        .ilike('crop_name', %${crop}%);
+
+      if (error) {
+        alert('حدث خطأ أثناء البحث');
+        return;
+      }
+
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      if (!data.length) {
+        container.innerHTML = '<p>لا توجد نتائج.</p>';
+        return;
+      }
+
+      data.forEach(row => {
+        container.innerHTML += `
+          <div style="border:1px solid #ccc; margin:10px; padding:10px;">
+            <h3>${row.crop_name} - ${row.country_name}</h3>
+            <p><b>الملخص:</b> ${row.summary || '---'}</p>
+            <p><b>التفاصيل:</b> ${row.full_conditions || '---'}</p>
+            ${row.pdf_url ? <a href="${row.pdf_url}" target="_blank">تحميل PDF</a> : ''}
+          </div>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
