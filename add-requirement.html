@@ -3,136 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>قائمة الاشتراطات التصديرية</title>
+  <title>إضافة اشتراط تصديري جديد</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
-
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background-color: #f4f7f9;
+      background-color: #f5f8fa;
       padding: 20px;
       color: #333;
     }
 
-    .header {
+    .form-container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #00796b;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #444;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: "Cairo", sans-serif;
+    }
+
+    button {
+      background-color: #00796b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    .back-btn {
+      background-color: #607d8b;
+      margin-right: 10px;
+    }
+
+    .back-btn:hover {
+      background-color: #455a64;
+    }
+
+    .success {
+      color: green;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
     }
 
-    h2 {
-      margin: 0;
-      color: #00796b;
-    }
-
-    .logout-btn, .add-btn, .filter-btn {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      cursor: pointer;
+    datalist option {
       font-family: "Cairo", sans-serif;
-    }
-
-    .logout-btn {
-      background-color: #e53935;
-    }
-
-    .logout-btn:hover {
-      background-color: #b71c1c;
-    }
-
-    .add-btn {
-      background-color: #00796b;
-      margin-left: 10px;
-    }
-
-    .add-btn:hover {
-      background-color: #004d40;
-    }
-
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    select, button {
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-family: "Cairo", sans-serif;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background-color: #00796b;
-      color: #fff;
-    }
-
-    tr:hover {
-      background-color: #f1f1f1;
     }
   </style>
 </head>
 
 <body>
-  <div class="header">
-    <h2>📋 قائمة الاشتراطات التصديرية</h2>
-    <div>
-      <button class="add-btn" id="addBtn" style="display:none;">➕ إضافة اشتراط</button>
-      <button class="logout-btn" id="logoutBtn">🚪 تسجيل الخروج</button>
-    </div>
+  <div class="top-bar">
+    <button class="back-btn" id="backBtn">🔙 عودة</button>
+    <button class="logout-btn" id="logoutBtn" style="background:#e53935;">🚪 تسجيل الخروج</button>
   </div>
 
-  <div class="filters">
-    <select id="countryFilter">
-      <option value="">اختر الدولة</option>
-    </select>
-    <select id="cropFilter">
-      <option value="">اختر المحصول</option>
-    </select>
-    <button class="filter-btn" id="filterBtn" style="background:#607d8b;">🔍 بحث</button>
-  </div>
+  <div class="form-container">
+    <h2>إضافة اشتراط تصديري جديد</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>الدولة</th>
-        <th>المحصول</th>
-        <th>رقم النشر</th>
-        <th>سنة النشر</th>
-        <th>ملاحظات</th>
-      </tr>
-    </thead>
-    <tbody id="reqTable">
-      <tr><td colspan="5">جارٍ تحميل البيانات...</td></tr>
-    </tbody>
-  </table>
+    <form id="requirementForm">
+      <label for="country">الدولة <span style="color:red">*</span></label>
+      <input list="countryList" id="country" placeholder="أدخل أو اختر الدولة" required>
+      <datalist id="countryList"></datalist>
+
+      <label for="crop">المحصول <span style="color:red">*</span></label>
+      <input list="cropList" id="crop" placeholder="أدخل أو اختر المحصول" required>
+      <datalist id="cropList"></datalist>
+
+      <label for="pubNumber">رقم النشر (اختياري)</label>
+      <input type="text" id="pubNumber" placeholder="أدخل رقم النشر">
+
+      <label for="pubYear">سنة النشر (اختياري)</label>
+      <input type="number" id="pubYear" placeholder="مثلاً 2024">
+
+      <label for="notes">الاشتراط الكامل (اختياري)</label>
+      <textarea id="notes" rows="4" placeholder="أدخل تفاصيل الاشتراط هنا إن وُجدت..."></textarea>
+
+      <button type="submit">💾 حفظ الاشتراط</button>
+      <div id="message"></div>
+    </form>
+  </div>
 
   <script>
+    const form = document.getElementById("requirementForm");
+    const msg = document.getElementById("message");
     const logoutBtn = document.getElementById("logoutBtn");
-    const addBtn = document.getElementById("addBtn");
-    const countryFilter = document.getElementById("countryFilter");
-    const cropFilter = document.getElementById("cropFilter");
-    const reqTable = document.getElementById("reqTable");
+    const backBtn = document.getElementById("backBtn");
 
     // تسجيل الخروج
     logoutBtn.addEventListener("click", async () => {
@@ -140,97 +137,83 @@
       window.location.href = "login.html";
     });
 
-    // زر إضافة اشتراط جديد
-    addBtn.addEventListener("click", () => {
-      window.location.href = "add-requirement.html";
+    // العودة
+    backBtn.addEventListener("click", () => {
+      window.location.href = "requirements.html";
     });
 
-    // تحميل الدول والمحاصيل في الفلاتر
-    async function loadFilters() {
+    // تحميل الدول والمحاصيل
+    let countryData = [];
+    let cropData = [];
+
+    async function loadLists() {
       const { data: countries } = await supabase.from("countries").select("id, name_ar");
       const { data: crops } = await supabase.from("crops").select("id, name_ar");
 
-      countries?.forEach(c => {
+      countryData = countries || [];
+      cropData = crops || [];
+
+      const countryList = document.getElementById("countryList");
+      const cropList = document.getElementById("cropList");
+
+      countryData.forEach(c => {
         const opt = document.createElement("option");
-        opt.value = c.id;
-        opt.textContent = c.name_ar;
-        countryFilter.appendChild(opt);
+        opt.value = c.name_ar;
+        countryList.appendChild(opt);
       });
 
-      crops?.forEach(c => {
+      cropData.forEach(c => {
         const opt = document.createElement("option");
-        opt.value = c.id;
-        opt.textContent = c.name_ar;
-        cropFilter.appendChild(opt);
+        opt.value = c.name_ar;
+        cropList.appendChild(opt);
       });
     }
 
-    // تحميل الاشتراطات
-    async function loadRequirements(filter = {}) {
-      let query = supabase
-        .from("export_requirements")
-        .select(`id, publication_number, publication_year, notes, countries(name_ar), crops(name_ar)`);
+    // حفظ الاشتراط
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
 
-      if (filter.country_id) query.eq("country_id", filter.country_id);
-      if (filter.crop_id) query.eq("crop_id", filter.crop_id);
+      const countryName = document.getElementById("country").value.trim();
+      const cropName = document.getElementById("crop").value.trim();
+      const pubNumber = document.getElementById("pubNumber").value || null;
+      const pubYear = document.getElementById("pubYear").value || null;
+      const notes = document.getElementById("notes").value || null;
 
-      const { data, error } = await query;
+      const country = countryData.find(c => c.name_ar === countryName);
+      const crop = cropData.find(c => c.name_ar === cropName);
+
+      if (!country || !crop) {
+        msg.innerHTML = "<p class='error'>يرجى اختيار الدولة والمحصول من القائمة الصحيحة.</p>";
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      const user_id = userData?.user?.id;
+
+      if (!user_id) {
+        msg.innerHTML = "<p class='error'>يجب تسجيل الدخول أولاً.</p>";
+        return;
+      }
+
+      const { error } = await supabase.from("export_requirements").insert({
+        user_id,
+        country_id: country.id,
+        crop_id: crop.id,
+        publication_number: pubNumber,
+        publication_year: pubYear,
+        full_requirements: notes
+      });
+
       if (error) {
-        reqTable.innerHTML = `<tr><td colspan="5">❌ خطأ في تحميل البيانات</td></tr>`;
-        return;
+        msg.innerHTML = `<p class='error'>❌ حدث خطأ أثناء الحفظ: ${error.message}</p>`;
+      } else {
+        msg.innerHTML = "<p class='success'>✅ تم حفظ الاشتراط بنجاح!</p>";
+        form.reset();
       }
-
-      if (!data || data.length === 0) {
-        reqTable.innerHTML = `<tr><td colspan="5">لا توجد اشتراطات مطابقة</td></tr>`;
-        return;
-      }
-
-      reqTable.innerHTML = "";
-      data.forEach(r => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${r.countries?.name_ar || "-"}</td>
-          <td>${r.crops?.name_ar || "-"}</td>
-          <td>${r.publication_number || "-"}</td>
-          <td>${r.publication_year || "-"}</td>
-          <td>${r.notes || "-"}</td>
-        `;
-        reqTable.appendChild(tr);
-      });
-    }
-
-    // تصفية البيانات
-    document.getElementById("filterBtn").addEventListener("click", () => {
-      loadRequirements({
-        country_id: countryFilter.value || null,
-        crop_id: cropFilter.value || null
-      });
     });
 
-    // تحديد هل المستخدم مدير أو مشرف
-    async function checkUserRole() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role_id")
-        .eq("id", user.id)
-        .single();
-
-      // يظهر زر الإضافة فقط للأدوار 1 أو 2
-      if (profile?.role_id === 1 || profile?.role_id === 2) {
-        addBtn.style.display = "inline-block";
-      }
-    }
-
-    // تحميل الصفحة
-    loadFilters();
-    loadRequirements();
-    checkUserRole();
+    loadLists();
   </script>
 </body>
 </html>
