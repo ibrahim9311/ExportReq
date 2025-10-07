@@ -1,50 +1,42 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تسجيل الدخول</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: "Tajawal", sans-serif; background: #f5f6fa; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .card { background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-    input { width: 90%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; }
-    button { width: 100%; padding: 10px; background: #007bff; border: none; color: #fff; border-radius: 8px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    .msg { margin-top: 10px; color: red; }
-  </style>
 </head>
 <body>
-  <div class="card">
-    <h2>تسجيل الدخول</h2>
-    <input id="username" type="text" placeholder="اسم المستخدم بالإنجليزية" />
-    <input id="password" type="password" placeholder="كلمة المرور" />
-    <button onclick="login()">دخول</button>
-    <div class="msg" id="msg"></div>
-  </div>
+  <h2>تسجيل الدخول</h2>
 
-  <script>
-    const supabase = supabase.createClient('https://uulzslgyqygvtpfgeecr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ');
+  <form id="loginForm">
+    <label>البريد الإلكتروني:</label>
+    <input type="email" id="email" required><br><br>
 
-    async function login() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const msg = document.getElementById("msg");
+    <label>كلمة المرور:</label>
+    <input type="password" id="password" required><br><br>
 
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("username", username)
-        .eq("password", password)
-        .single();
+    <button type="submit">دخول</button>
+  </form>
 
-      if (error || !data) {
-        msg.textContent = "❌ اسم المستخدم أو كلمة المرور غير صحيحة";
+  <script type="module">
+    import { supabase } from 'supabase.js';
+
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        alert('حدث خطأ: ' + error.message);
       } else {
-        localStorage.setItem("user", JSON.stringify(data));
-        window.location.href = "dashboard.html";
+        alert('تم تسجيل الدخول بنجاح ✅');
+        console.log('User:', data.user);
       }
-    }
+    });
   </script>
 </body>
 </html>
