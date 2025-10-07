@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استكمال البيانات</title>
+  <style>
+    body {
+      font-family: "Tajawal", sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      background: white;
+      color: black;
+      padding: 2rem;
+      border-radius: 1rem;
+      width: 400px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      background: #2575fc;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>استكمال بيانات الحساب</h2>
+    <form id="profileForm">
+      <input type="text" id="full_name_ar" placeholder="الاسم الكامل بالعربية" required>
+      <input type="text" id="company_name" placeholder="اسم الشركة">
+      <input type="tel" id="phone_number" placeholder="رقم الهاتف">
+      <input type="date" id="birth_date" placeholder="تاريخ الميلاد">
+      <button type="submit">حفظ البيانات</button>
+    </form>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function getCurrentUser() {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        alert('حدث خطأ في تحميل بيانات المستخدم.');
+        console.error(error);
+      }
+      return data.user;
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const user = await getCurrentUser();
+      if (!user) return alert('لم يتم العثور على المستخدم.');
+
+      const dataToInsert = {
+        id: user.id,
+        full_name_ar: document.getElementById('full_name_ar').value,
+        company_name: document.getElementById('company_name').value,
+        phone_number: document.getElementById('phone_number').value,
+        birth_date: document.getElementById('birth_date').value,
+      };
+
+      // إدخال البيانات في جدول profiles
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(dataToInsert, { onConflict: 'id' });
+
+      if (error) {
+        alert('حدث خطأ أثناء حفظ البيانات: ' + error.message);
+        console.error(error);
+      } else {
+        alert('✅ تم حفظ بياناتك بنجاح!');
+        // يمكنك توجيه المستخدم الآن إلى الصفحة الرئيسية
+        // window.location.href = "/dashboard.html";
+      }
+    });
+  </script>
+</body>
+</html>
