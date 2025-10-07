@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background-color: #f3f6f9;
+      background-color: #f6f8fa;
       margin: 0;
       padding: 20px;
     }
@@ -78,6 +78,16 @@
       text-align: center;
       color: #333;
     }
+
+    .success-message {
+      text-align: center;
+      color: #00796b;
+      background: #e0f2f1;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: none;
+    }
   </style>
 </head>
 
@@ -91,6 +101,8 @@
   </div>
 
   <div class="container">
+    <div id="successMsg" class="success-message">✅ تم حفظ الاشتراط بنجاح!</div>
+
     <form id="requirementForm">
       <label>الدولة:</label>
       <select id="countrySelect" required></select>
@@ -119,6 +131,7 @@
 
   <script>
     const logoutBtn = document.getElementById("logout-btn");
+    const successMsg = document.getElementById("successMsg");
 
     // تسجيل الخروج
     logoutBtn.addEventListener("click", async () => {
@@ -171,7 +184,7 @@
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) return alert("يجب تسجيل الدخول أولاً.");
 
-      const { data, error } = await supabase.from("export_requirements").insert([
+      const { error } = await supabase.from("export_requirements").insert([
         {
           user_id: user.id,
           country_id: document.getElementById("countrySelect").value,
@@ -188,8 +201,11 @@
         console.error(error);
         alert("حدث خطأ أثناء حفظ الاشتراط: " + error.message);
       } else {
-        alert("✅ تم حفظ الاشتراط بنجاح!");
-        window.location.href = "requirements.html";
+        successMsg.style.display = "block";
+        form.reset();
+        setTimeout(() => {
+          successMsg.style.display = "none";
+        }, 3000);
       }
     });
   </script>
