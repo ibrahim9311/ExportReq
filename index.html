@@ -1,82 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>الصفحة الرئيسية</title>
-  <style>
-    body {
-      font-family: "Tajawal", sans-serif;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      text-align: center;
-      padding-top: 15%;
-    }
-    button {
-      background: white;
-      color: #2575fc;
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>الصفحة الرئيسية - ExportReq</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <h1>مرحبًا بك في منصتنا 🌿</h1>
-  <p>يتم الآن التحقق من حالة حسابك...</p>
-
-  <script type="module">
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-    const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
-    const SUPABASE_ANON_KEY =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function checkProfile() {
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        // المستخدم مش داخل
-        window.location.href = "login.html";
-        return;
-      }
-
-      // تحقق من وجود بروفايل للمستخدم
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, full_name_ar")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        alert("حدث خطأ أثناء التحقق من بياناتك");
-        console.error(profileError);
-        return;
-      }
-
-      if (!profile || !profile.full_name_ar) {
-        // المستخدم ماكمل بياناته
-        window.location.href = "complete-profile.html";
-      } else {
-        // بياناته كاملة
-        document.body.innerHTML = `
-          <h1>👋 أهلاً ${profile.full_name_ar || "بك"}!</h1>
-          <p>تم تسجيل الدخول بنجاح ✅</p>
-          <button id="logoutBtn">تسجيل الخروج</button>
-        `;
-
-        document.getElementById("logoutBtn").addEventListener("click", async () => {
-          await supabase.auth.signOut();
-          window.location.href = "login.html";
-        });
-      }
-    }
-
-    checkProfile();
-  </script>
+<body class="d-flex align-items-center justify-content-center">
+  <div class="container text-center text-white">
+    <div class="card card-rounded p-4 shadow" style="max-width:720px;margin:auto;">
+      <h1 class="mb-3">مرحباً بك في منصة ExportReq</h1>
+      <p class="mb-4">ابحث في متطلبات التصدير أو سجّل بيانات جديدة إن كان لديك صلاحيات.</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="login.html" class="btn btn-light">تسجيل الدخول</a>
+        <a href="signup.html" class="btn btn-outline-light">إنشاء حساب جديد</a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

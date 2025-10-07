@@ -1,116 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>استكمال البيانات</title>
-  <style>
-    body {
-      font-family: "Tajawal", sans-serif;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .box {
-      background: white;
-      color: black;
-      padding: 2rem;
-      border-radius: 1rem;
-      width: 400px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      width: 100%;
-      background: #2575fc;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>استكمال البيانات - ExportReq</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <div class="box">
-    <h2>استكمال بيانات الحساب</h2>
+<body class="d-flex align-items-center justify-content-center">
+  <div class="card card-rounded p-4 shadow" style="width:500px;">
+    <h3 class="mb-3 text-center">استكمال بيانات الحساب</h3>
     <form id="profileForm">
-      <input type="text" id="full_name_ar" placeholder="الاسم الكامل بالعربية" required>
-      <input type="text" id="company_name" placeholder="اسم الشركة">
-      <input type="tel" id="phone_number" placeholder="رقم الهاتف">
-      <input type="date" id="birth_date" placeholder="تاريخ الميلاد">
-      <button type="submit">حفظ البيانات</button>
+      <div class="mb-3">
+        <label class="form-label">اسمك الكامل (بالعربية)</label>
+        <input type="text" id="full_name_ar" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">رقم العميل (اختياري)</label>
+        <input type="text" id="client_number" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">اسم الشركة (اختياري)</label>
+        <input type="text" id="company_name" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">رقم الجوال (اختياري)</label>
+        <input type="tel" id="phone_number" class="form-control">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">تاريخ الميلاد (اختياري)</label>
+        <input type="date" id="birth_date" class="form-control">
+      </div>
+      <button class="btn btn-primary w-100" type="submit">حفظ وإكمال</button>
     </form>
   </div>
-<div class="form-group">
-  <label for="username_en">اسم المستخدم (بالإنجليزية)</label>
-  <input type="text" id="username_en" required />
-</div>
 
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
     const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
-    const SUPABASE_ANON_KEY =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
-
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 🟢 استعادة الجلسة من الـ access_token القادم من Supabase
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const access_token = hashParams.get("access_token");
-    const refresh_token = hashParams.get("refresh_token");
-
-    if (access_token && refresh_token) {
-      await supabase.auth.setSession({ access_token, refresh_token });
-    }
+    // restore session if redirected with tokens in hash
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    (async () => {
+      if (access_token && refresh_token) {
+        await supabase.auth.setSession({ access_token, refresh_token });
+        history.replaceState(null, '', window.location.pathname);
+      }
+    })();
 
     async function getUser() {
       const { data, error } = await supabase.auth.getUser();
-      if (error || !data.user) {
-        alert("لم يتم العثور على المستخدم. يرجى تسجيل الدخول مجددًا.");
-        window.location.href = "login.html";
+      if (error) {
+        console.error(error);
         return null;
       }
       return data.user;
     }
 
-    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const user = await getUser();
-      if (!user) return;
-
-      const formData = {
-        id: user.id,
-        full_name_ar: document.getElementById("full_name_ar").value,
-        company_name: document.getElementById("company_name").value,
-        phone_number: document.getElementById("phone_number").value,
-        birth_date: document.getElementById("birth_date").value,
-      };
-
-      const { error } = await supabase
-        .from("profiles")
-        .upsert(formData, { onConflict: "id" });
-
-      if (error) {
-             console.error("❌ خطأ Supabase:", error);
-            alert("حدث خطأ أثناء حفظ البيانات:\n" + error.message);
-        } else {
-        alert("✅ تم حفظ بياناتك بنجاح!");
-        window.location.href = "index.html";
+      if (!user) {
+        alert('لم نتمكن من تحديد حسابك. يرجى تسجيل الدخول.');
+        window.location.href = 'login.html';
+        return;
       }
+      const payload = {
+        id: user.id,
+        full_name_ar: document.getElementById('full_name_ar').value,
+        client_number: document.getElementById('client_number').value || null,
+        company_name: document.getElementById('company_name').value || null,
+        phone_number: document.getElementById('phone_number').value || null,
+        birth_date: document.getElementById('birth_date').value || null,
+        role_id: 4
+      };
+      const { data, error } = await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('upsert error', error);
+        alert('حدث خطأ أثناء حفظ البيانات: ' + error.message);
+        return;
+      }
+      alert('تم حفظ البيانات بنجاح');
+      window.location.href = 'dashboard.html';
     });
   </script>
 </body>
 </html>
-

@@ -1,35 +1,91 @@
-<!DOCTYPE html>
-<html lang="ar">
+<!doctype html>
+<html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الصفحة الرئيسية</title>
-  <style>
-    body { font-family: "Tajawal", sans-serif; background: #f0f2f5; text-align: center; padding-top: 100px; }
-    h2 { color: #333; }
-    button { margin: 10px; padding: 15px 25px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; color: white; }
-    .search { background-color: #28a745; }
-    .add { background-color: #007bff; }
-    button:hover { opacity: 0.9; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>لوحة التحكم - ExportReq</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <h2>مرحبًا بك 👋</h2>
-  <button class="search" onclick="window.location.href='search.html'">🔍 البحث</button>
-  <button class="add" onclick="window.location.href='add_requirement.html'">📝 تسجيل اشتراط</button>
-  <br><br>
-  <button onclick="logout()" style="background:#dc3545;">تسجيل الخروج</button>
+<body class="p-3">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="text-white">لوحة التحكم</h3>
+      <div>
+        <button id="logoutBtn" class="btn btn-light">تسجيل الخروج</button>
+      </div>
+    </div>
 
-  <script>
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) {
-      window.location.href = "login.html";
+    <div id="welcomeCard" class="card card-rounded p-3 mb-3"></div>
+
+    <div id="actions" class="d-flex gap-2"></div>
+
+    <div id="searchArea" class="mt-4 card card-rounded p-3">
+      <h5>بحث في المتطلبات</h5>
+      <input id="q" class="form-control" placeholder="ابحث باسم المحصول أو الدولة..." />
+      <div id="results" class="mt-3"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function init() {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // load profile to get role
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+
+      document.getElementById('welcomeCard').innerHTML = '<h5>أهلاً ' + (profile?.full_name_ar || user.email) + '</h5><p>دورك: ' + (profile?.role_id || 'غير محدد') + '</p>';
+
+      const actions = document.getElementById('actions');
+      actions.innerHTML = '';
+
+      // Everyone can search
+      const searchBtn = document.createElement('button');
+      searchBtn.className = 'btn btn-outline-light';
+      searchBtn.textContent = 'بحث';
+      searchBtn.addEventListener('click', async () => {
+        const q = document.getElementById('q').value;
+        const { data } = await supabase.from('export_requirements').select('id,publication_number,publication_year,full_requirements').ilike('full_requirements', '%' + q + '%').limit(20);
+        const results = document.getElementById('results');
+        results.innerHTML = '';
+        if (!data || data.length === 0) {
+          results.innerHTML = '<div class="text-muted">لا توجد نتائج</div>';
+          return;
+        }
+        data.forEach(r => {
+          const el = document.createElement('div');
+          el.className = 'mb-2 p-2 border rounded';
+          el.innerHTML = '<strong>#' + r.publication_number + ' ('+ r.publication_year +')</strong><p>' + (r.full_requirements || '') + '</p>';
+          results.appendChild(el);
+        });
+      });
+      actions.appendChild(searchBtn);
+
+      // If admin (1) or moderator (2) show register button
+      if (profile?.role_id === 1 || profile?.role_id === 2) {
+        const regBtn = document.createElement('a');
+        regBtn.className = 'btn btn-success';
+        regBtn.href = 'new-record.html';
+        regBtn.textContent = 'إضافة سجل جديد';
+        actions.appendChild(regBtn);
+      }
     }
 
-    function logout() {
-      localStorage.removeItem("user");
-      window.location.href = "login.html";
-    }
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    init();
   </script>
 </body>
 </html>
