@@ -4,165 +4,144 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>البحث في الاشتراطات</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>🔍 البحث في الاشتراطات التصديرية</h2>
-      <div>
-        <span id="welcome"></span>
-        <button id="logout-btn" class="logout-btn">تسجيل الخروج</button>
-      </div>
-    </div>
-
-    <div id="search-section" style="display:none;">
-      <div class="form-group">
-        <label for="country_search">الدولة:</label>
-        <input type="text" id="country_search" placeholder="اكتب اسم الدولة..." />
-      </div>
-
-      <div class="form-group">
-        <label for="crop_search">المحصول:</label>
-        <input type="text" id="crop_search" placeholder="اكتب اسم المحصول..." />
-      </div>
-
-      <button id="searchBtn">بحث</button>
-      <div id="results" style="margin-top: 20px;"></div>
-    </div>
-  </div>
-
-  <script>
-    // 🔗 إعداد Supabase
-    const supabaseUrl = "https://uulzslgyqygvtpfgeecr.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-    // 🔒 التحقق من الجلسة
-    (async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        alert("يجب تسجيل الدخول أولاً");
-        window.location.href = "login.html";
-        return;
-      }
-
-      const user = session.user;
-
-      // جلب اسم المستخدم من profiles
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name_ar, username_en")
-        .eq("id", user.id)
-        .single();
-
-      document.getElementById("welcome").textContent = `مرحبًا، ${profile?.full_name_ar || profile?.username_en || "مستخدم"}`;
-      document.getElementById("search-section").style.display = "block";
-    })();
-
-    // 🔍 زر البحث
-    document.getElementById("searchBtn").addEventListener("click", async () => {
-      const country = document.getElementById("country_search").value.trim();
-      const crop = document.getElementById("crop_search").value.trim();
-
-      let query = supabase
-        .from("export_requirements")
-        .select(`
-          id,
-          short_summary,
-          full_requirements,
-          publication_number,
-          publication_year,
-          countries(name_ar),
-          crops(name_ar)
-        `)
-        .order("id", { ascending: false });
-
-      if (country) query = query.ilike("countries.name_ar", `%${country}%`);
-      if (crop) query = query.ilike("crops.name_ar", `%${crop}%`);
-
-      const { data, error } = await query;
-
-      if (error) {
-        document.getElementById("results").innerHTML = `<p style="color:red;">حدث خطأ أثناء البحث.</p>`;
-      } else if (!data || data.length === 0) {
-        document.getElementById("results").innerHTML = `<p>لا توجد نتائج مطابقة.</p>`;
-      } else {
-        let html = "";
-        data.forEach(r => {
-          html += `
-            <div class="card">
-              <h3>${r.short_summary || "اشتراط بدون عنوان"}</h3>
-              <p><b>الدولة:</b> ${r.countries?.name_ar || "-"}</p>
-              <p><b>المحصول:</b> ${r.crops?.name_ar || "-"}</p>
-              <p><b>رقم المنشور:</b> ${r.publication_number || "-"}</p>
-              <p><b>سنة المنشور:</b> ${r.publication_year || "-"}</p>
-              <details>
-                <summary>عرض الاشتراط الكامل</summary>
-                <p>${r.full_requirements || "لا يوجد نص"}</p>
-              </details>
-            </div>
-          `;
-        });
-        document.getElementById("results").innerHTML = html;
-      }
-    });
-
-    // 🚪 زر تسجيل الخروج
-    document.getElementById("logout-btn").addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      window.location.href = "login.html";
-    });
-  </script>
-
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
     body {
-      font-family: "Cairo", sans-serif;
-      background-color: #f3f4f6;
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f1f1f1;
+      margin: 0;
+      padding: 0;
+      direction: rtl;
       color: #333;
     }
-    .container {
-      max-width: 800px;
-      margin: 50px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .header {
+    header {
+      background-color: #1e1e2f;
+      color: white;
+      padding: 15px 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .logout-btn {
-      background-color: #e53935;
-      color: #fff;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
+    h2 {
+      margin: 0;
     }
-    .logout-btn:hover { background-color: #b71c1c; }
-    .form-group { margin-bottom: 10px; }
-    input { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
-    button {
-      background-color: #0288d1;
+    .add-btn, .logout-btn {
+      background-color: #007bff;
       color: white;
       border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-left: 8px;
     }
-    button:hover { background-color: #0277bd; }
-    .card {
-      background: #fafafa;
+    .add-btn:hover {
+      background-color: #0056b3;
+    }
+    .logout-btn {
+      background-color: #dc3545;
+    }
+    .logout-btn:hover {
+      background-color: #a71d2a;
+    }
+    .container {
+      padding: 20px;
+    }
+    input, select, button {
+      font-size: 16px;
+      padding: 8px;
+      margin: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .results {
+      margin-top: 20px;
+      background-color: white;
       border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+      padding: 15px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .result-item {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
     }
   </style>
+</head>
+<body>
+  <header>
+    <h2>🔍 البحث في الاشتراطات التصديرية</h2>
+    <div>
+      <button id="add-btn" class="add-btn" style="display:none;">➕ إضافة اشتراط</button>
+      <button id="logout-btn" class="logout-btn">🚪 تسجيل الخروج</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div>
+      <label>اسم الدولة:</label>
+      <input type="text" id="country" placeholder="اكتب اسم الدولة...">
+      <label>اسم المحصول:</label>
+      <input type="text" id="crop" placeholder="اكتب اسم المحصول...">
+      <button id="search-btn">بحث</button>
+    </div>
+
+    <div id="results" class="results"></div>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://uulzslgyqygvtpfgeecr.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return window.location.href = "login.html";
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role_id")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role_id === 1 || profile?.role_id === 2) {
+        document.getElementById("add-btn").style.display = "inline-block";
+      }
+
+      document.getElementById("add-btn").addEventListener("click", () => {
+        window.location.href = "add-requirement.html";
+      });
+      document.getElementById("logout-btn").addEventListener("click", async () => {
+        await supabase.auth.signOut();
+        window.location.href = "login.html";
+      });
+    }
+
+    init();
+
+    document.getElementById("search-btn").addEventListener("click", async () => {
+      const country = document.getElementById("country").value.trim();
+      const crop = document.getElementById("crop").value.trim();
+
+      let query = supabase.from("export_requirements_view").select("*");
+
+      if (country) query = query.ilike("country_name", `%${country}%`);
+      if (crop) query = query.ilike("crop_name", `%${crop}%`);
+
+      const { data, error } = await query;
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
+
+      if (error) return resultsDiv.innerHTML = `<p>حدث خطأ أثناء البحث</p>`;
+      if (!data.length) return resultsDiv.innerHTML = `<p>لا توجد نتائج مطابقة.</p>`;
+
+      data.forEach(item => {
+        resultsDiv.innerHTML += `
+          <div class="result-item">
+            <strong>الدولة:</strong> ${item.country_name}<br>
+            <strong>المحصول:</strong> ${item.crop_name}<br>
+            <strong>الاشتراط المختصر:</strong> ${item.short_summary || "—"}<br>
+          </div>`;
+      });
+    });
+  </script>
 </body>
 </html>
