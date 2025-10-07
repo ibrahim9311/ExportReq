@@ -3,169 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>الاشتراطات التصديرية للمحاصيل الزراعية</title>
+  <title>الصفحة الرئيسية</title>
   <style>
     body {
-      font-family: "Cairo", sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9f9f9;
-      color: #222;
-    }
-    header {
-      background: #006837;
+      font-family: "Tajawal", sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
       color: white;
       text-align: center;
-      padding: 15px 0;
-      font-size: 1.4rem;
-    }
-    main {
-      padding: 20px;
-      max-width: 900px;
-      margin: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    input, textarea, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0 14px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
+      padding-top: 15%;
     }
     button {
-      background: #006837;
-      color: white;
+      background: white;
+      color: #2575fc;
+      padding: 10px 20px;
+      border-radius: 8px;
       border: none;
+      font-size: 16px;
       cursor: pointer;
     }
-    button:hover { background: #004f2d; }
-    .record {
-      background: #f1fdf3;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-      border: 1px solid #cde7d4;
-    }
-    .record h3 { margin: 0 0 5px 0; color: #006837; }
-    footer {
-      text-align: center;
-      color: #666;
-      margin-top: 20px;
-      padding: 10px;
-      font-size: 0.9rem;
-    }
-    hr { margin: 25px 0; }
   </style>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <header>
-    نظام عرض وإضافة الاشتراطات التصديرية
-  </header>
+  <h1>مرحبًا بك في منصتنا 🌿</h1>
+  <p>يتم الآن التحقق من حالة حسابك...</p>
 
-  <main>
-    <!-- نموذج البحث -->
-    <h2>🔍 بحث عن اشتراطات المحاصيل</h2>
-    <form id="searchForm">
-      <label>الدولة:</label>
-      <input type="text" id="country" placeholder="مثلاً: تركيا" required />
-      <label>اسم المحصول:</label>
-      <input type="text" id="crop" placeholder="مثلاً: رمان" required />
-      <button type="submit">بحث</button>
-    </form>
-    <div id="results"></div>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    <hr>
+    const SUPABASE_URL = 'https://uulzslgyqygvtpfgeecr.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ';
 
-    <!-- نموذج إضافة بيانات -->
-    <h2>➕ إضافة اشتراطات جديدة</h2>
-    <form id="addForm">
-      <label>الدولة:</label>
-      <input type="text" id="add_country" placeholder="مثلاً: السعودية" required />
-      <label>اسم المحصول:</label>
-      <input type="text" id="add_crop" placeholder="مثلاً: مانجو" required />
-      <label>ملخص الاشتراطات:</label>
-      <textarea id="add_summary" placeholder="ملخص مختصر..." required></textarea>
-      <label>الاشتراطات الكاملة:</label>
-      <textarea id="add_full" placeholder="النص الكامل للاشتراطات (اختياري)"></textarea>
-      <label>رابط ملف PDF (اختياري):</label>
-      <input type="url" id="add_pdf" placeholder="https://example.com/file.pdf" />
-      <button type="submit">إضافة البيانات</button>
-    </form>
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <p id="addStatus"></p>
-  </main>
+    async function checkProfile() {
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-  <footer>
-    © 2025 - مشروع تكويد المزارع
-  </footer>
-
-  <script>
-    // إعداد الاتصال بـ Supabase
-    const SUPABASE_URL = "https://uulzslgyqygvtpfgeecr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const results = document.getElementById('results');
-    const addStatus = document.getElementById('addStatus');
-
-    // 🔹 البحث
-    document.getElementById('searchForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const country = document.getElementById('country').value.trim();
-      const crop = document.getElementById('crop').value.trim();
-
-      results.innerHTML = "<p>جاري تحميل النتائج...</p>";
-
-      const { data, error } = await supabase
-        .from("export_conditions")
-        .select("*")
-        .ilike("country_name", %${country}%)
-        .ilike("crop_name", %${crop}%);
-
-      if (error) {
-        results.innerHTML = <p style="color:red;">خطأ: ${error.message}</p>;
+      if (error || !user) {
+        // المستخدم مش داخل
+        window.location.href = "login.html";
         return;
       }
 
-      if (!data || data.length === 0) {
-        results.innerHTML = "<p>❌ لا توجد نتائج مطابقة.</p>";
+      // تحقق من وجود بروفايل للمستخدم
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name_ar")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        alert("حدث خطأ أثناء التحقق من بياناتك");
+        console.error(profileError);
         return;
       }
 
-      results.innerHTML = data.map(row => `
-        <div class="record">
-          <h3>${row.crop_name} - ${row.country_name}</h3>
-          <p><b>الملخص:</b> ${row.summary || "لا يوجد"}</p>
-          ${row.pdf_url ? <a href="${row.pdf_url}" target="_blank">📄 تحميل PDF</a> : ""}
-        </div>
-      `).join("");
-    });
-
-    // 🔹 إضافة بيانات جديدة
-    document.getElementById('addForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const newData = {
-        country_name: document.getElementById('add_country').value.trim(),
-        crop_name: document.getElementById('add_crop').value.trim(),
-        summary: document.getElementById('add_summary').value.trim(),
-        full_conditions: document.getElementById('add_full').value.trim() || null,
-        pdf_url: document.getElementById('add_pdf').value.trim() || null
-      };
-
-      const { error } = await supabase.from("export_conditions").insert([newData]);
-
-      if (error) {
-        addStatus.innerHTML = <p style="color:red;">❌ خطأ أثناء الحفظ: ${error.message}</p>;
+      if (!profile || !profile.full_name_ar) {
+        // المستخدم ماكمل بياناته
+        window.location.href = "complete-profile.html";
       } else {
-        addStatus.innerHTML = <p style="color:green;">✅ تم إضافة البيانات بنجاح.</p>;
-        document.getElementById('addForm').reset();
+        // بياناته كاملة
+        document.body.innerHTML = `
+          <h1>👋 أهلاً ${profile.full_name_ar || "بك"}!</h1>
+          <p>تم تسجيل الدخول بنجاح ✅</p>
+          <button id="logoutBtn">تسجيل الخروج</button>
+        `;
+
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+          await supabase.auth.signOut();
+          window.location.href = "login.html";
+        });
       }
-    });
+    }
+
+    checkProfile();
   </script>
 </body>
 </html>
