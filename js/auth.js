@@ -51,7 +51,36 @@ async function signInUser(event) {
     alert("خطأ في البريد أو كلمة المرور");
   } else {
     alert("تم تسجيل الدخول بنجاح ✅");
-    window.location.href = "/complete-profile.html";
+
+// التحقق من وجود ملف شخصي
+const user = (await supabase.auth.getUser()).data.user;
+
+if (!user) {
+  alert("حدث خطأ أثناء جلب بيانات المستخدم.");
+  return;
+}
+
+// التحقق من وجود سجل في profiles
+const { data: profile, error: profileError } = await supabase
+  .from("profiles")
+  .select("id")
+  .eq("id", user.id)
+  .maybeSingle();
+
+if (profileError) {
+  console.error("خطأ أثناء التحقق من الملف الشخصي:", profileError);
+  alert("حدث خطأ غير متوقع.");
+  return;
+}
+
+if (profile) {
+  // المستخدم لديه بيانات مكتملة
+  window.location.href = "/index.html";
+} else {
+  // لا يوجد ملف شخصي → الانتقال لإكمال البيانات
+  window.location.href = "/complete-profile.html";
+}
+
   }
 }
 
