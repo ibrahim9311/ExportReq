@@ -16,16 +16,22 @@ async function signUpUser(event) {
   const password = document.getElementById("signup-password").value;
 
   const { data, error } = await supabase.auth.signUp({
-    email: email,
-    password: password,
+    email,
+    password,
   });
 
   if (error) {
-    alert("حدث خطأ أثناء إنشاء الحساب: " + error.message);
-  } else {
-    alert("تم إرسال رسالة التفعيل إلى بريدك الإلكتروني، يرجى التحقق منها.");
-    window.location.href = "/complete-profile.html";
+    if (error.message.includes("already registered")) {
+      alert("⚠️ هذا البريد الإلكتروني مسجل مسبقًا. يُرجى تسجيل الدخول بدلًا من إنشاء حساب جديد.");
+      window.location.href = "/login.html";
+    } else {
+      alert("حدث خطأ أثناء إنشاء الحساب: " + error.message);
+    }
+    return;
   }
+
+  alert("✅ تم إرسال رسالة التفعيل إلى بريدك الإلكتروني. يرجى التحقق منها لتفعيل الحساب.");
+  window.location.href = "/login.html";
 }
 
 // ===========================
