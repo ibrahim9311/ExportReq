@@ -99,9 +99,9 @@
         .upsert(formData, { onConflict: "id" });
 
       if (error) {
-        console.error(error);
-        alert("حدث خطأ أثناء حفظ البيانات.");
-      } else {
+             console.error("❌ خطأ Supabase:", error);
+            alert("حدث خطأ أثناء حفظ البيانات:\n" + error.message);
+        } else {
         alert("✅ تم حفظ بياناتك بنجاح!");
         window.location.href = "index.html";
       }
