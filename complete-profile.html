@@ -61,24 +61,51 @@
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    async function getCurrentUser() {
+    // 🟢 استعادة الجلسة من الـ access_token القادم من Supabase
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = hashParams.get("access_token");
+    const refresh_token = hashParams.get("refresh_token");
+
+    if (access_token && refresh_token) {
+      await supabase.auth.setSession({ access_token, refresh_token });
+    }
+
+    async function getUser() {
       const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        alert('حدث خطأ في تحميل بيانات المستخدم.');
-        console.error(error);
+      if (error || !data.user) {
+        alert("لم يتم العثور على المستخدم. يرجى تسجيل الدخول مجددًا.");
+        window.location.href = "login.html";
+        return null;
       }
       return data.user;
     }
 
-    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const user = await getCurrentUser();
-      if (!user) return alert('لم يتم العثور على المستخدم.');
+      const user = await getUser();
+      if (!user) return;
 
-      const dataToInsert = {
+      const formData = {
         id: user.id,
-        full_name_ar: document.getElementById('full_name_ar').value,
-        company_name: document.getElementById('company_name').value,
-        phone_number: document.getElementById('phone_number').value,
-        birth_date: document.getElementById('birth_date').value,
+        full_name_ar: document.getElementById("full_name_ar").value,
+        company_name: document.getElementById("company_name").value,
+        phone_number: document.getElementById("phone_number").value,
+        birth_date: document.getElementById("birth_date").value,
+      };
+
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(formData, { onConflict: "id" });
+
+      if (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء حفظ البيانات.");
+      } else {
+        alert("✅ تم حفظ بياناتك بنجاح!");
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+</body>
+</html>
