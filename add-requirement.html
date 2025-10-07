@@ -2,218 +2,145 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إضافة اشتراط تصديري جديد</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
+  <title>إضافة اشتراط جديد</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
     body {
-      font-family: "Cairo", sans-serif;
-      background-color: #f5f8fa;
-      padding: 20px;
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
       color: #333;
     }
-
-    .form-container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
-      color: #00796b;
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #444;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-family: "Cairo", sans-serif;
-    }
-
-    button {
-      background-color: #00796b;
+    header {
+      background-color: #1e1e2f;
       color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #004d40;
-    }
-
-    .back-btn {
-      background-color: #607d8b;
-      margin-right: 10px;
-    }
-
-    .back-btn:hover {
-      background-color: #455a64;
-    }
-
-    .success {
-      color: green;
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .error {
-      color: red;
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .top-bar {
+      padding: 15px 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
     }
-
-    datalist option {
-      font-family: "Cairo", sans-serif;
+    h2 {
+      margin: 0;
+    }
+    .back-btn, .logout-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .logout-btn {
+      background-color: #dc3545;
+    }
+    .container {
+      padding: 20px;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button.save-btn {
+      background-color: #43a047;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button.save-btn:hover {
+      background-color: #2e7d32;
     }
   </style>
 </head>
-
 <body>
-  <div class="top-bar">
-    <button class="back-btn" id="backBtn">🔙 عودة</button>
-    <button class="logout-btn" id="logoutBtn" style="background:#e53935;">🚪 تسجيل الخروج</button>
-  </div>
+  <header>
+    <h2>➕ إضافة اشتراط جديد</h2>
+    <div>
+      <button id="back-btn" class="back-btn">🔍 العودة للبحث</button>
+      <button id="logout-btn" class="logout-btn">🚪 تسجيل الخروج</button>
+    </div>
+  </header>
 
-  <div class="form-container">
-    <h2>إضافة اشتراط تصديري جديد</h2>
+  <div class="container">
+    <label>الدولة:</label>
+    <input type="text" id="country_name" placeholder="اسم الدولة">
 
-    <form id="requirementForm">
-      <label for="country">الدولة <span style="color:red">*</span></label>
-      <input list="countryList" id="country" placeholder="أدخل أو اختر الدولة" required>
-      <datalist id="countryList"></datalist>
+    <label>المحصول:</label>
+    <input type="text" id="crop_name" placeholder="اسم المحصول">
 
-      <label for="crop">المحصول <span style="color:red">*</span></label>
-      <input list="cropList" id="crop" placeholder="أدخل أو اختر المحصول" required>
-      <datalist id="cropList"></datalist>
+    <label>الاشتراط المختصر:</label>
+    <textarea id="short_summary" rows="2" placeholder="اختصار الاشتراط (اختياري)"></textarea>
 
-      <label for="pubNumber">رقم النشر (اختياري)</label>
-      <input type="text" id="pubNumber" placeholder="أدخل رقم النشر">
+    <label>الاشتراط الكامل:</label>
+    <textarea id="full_requirements" rows="4"></textarea>
 
-      <label for="pubYear">سنة النشر (اختياري)</label>
-      <input type="number" id="pubYear" placeholder="مثلاً 2024">
+    <label>رقم المنشور (اختياري):</label>
+    <input type="text" id="publication_number">
 
-      <label for="notes">الاشتراط الكامل (اختياري)</label>
-      <textarea id="notes" rows="4" placeholder="أدخل تفاصيل الاشتراط هنا إن وُجدت..."></textarea>
+    <label>سنة المنشور (اختياري):</label>
+    <input type="text" id="publication_year">
 
-      <button type="submit">💾 حفظ الاشتراط</button>
-      <div id="message"></div>
-    </form>
+    <button class="save-btn" id="save-btn">💾 حفظ الاشتراط</button>
+    <p id="message"></p>
   </div>
 
   <script>
-    const form = document.getElementById("requirementForm");
-    const msg = document.getElementById("message");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const backBtn = document.getElementById("backBtn");
+    const supabaseUrl = "https://uulzslgyqygvtpfgeecr.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // تسجيل الخروج
-    logoutBtn.addEventListener("click", async () => {
+    document.getElementById("back-btn").addEventListener("click", () => {
+      window.location.href = "search.html";
+    });
+    document.getElementById("logout-btn").addEventListener("click", async () => {
       await supabase.auth.signOut();
       window.location.href = "login.html";
     });
 
-    // العودة
-    backBtn.addEventListener("click", () => {
-      window.location.href = "requirements.html";
-    });
+    document.getElementById("save-btn").addEventListener("click", async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("يجب تسجيل الدخول أولاً.");
 
-    // تحميل الدول والمحاصيل
-    let countryData = [];
-    let cropData = [];
+      const country_name = document.getElementById("country_name").value.trim();
+      const crop_name = document.getElementById("crop_name").value.trim();
+      const short_summary = document.getElementById("short_summary").value.trim();
+      const full_requirements = document.getElementById("full_requirements").value.trim();
+      const publication_number = document.getElementById("publication_number").value.trim();
+      const publication_year = document.getElementById("publication_year").value.trim();
 
-    async function loadLists() {
-      const { data: countries } = await supabase.from("countries").select("id, name_ar");
-      const { data: crops } = await supabase.from("crops").select("id, name_ar");
-
-      countryData = countries || [];
-      cropData = crops || [];
-
-      const countryList = document.getElementById("countryList");
-      const cropList = document.getElementById("cropList");
-
-      countryData.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c.name_ar;
-        countryList.appendChild(opt);
-      });
-
-      cropData.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c.name_ar;
-        cropList.appendChild(opt);
-      });
-    }
-
-    // حفظ الاشتراط
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      msg.textContent = "";
-
-      const countryName = document.getElementById("country").value.trim();
-      const cropName = document.getElementById("crop").value.trim();
-      const pubNumber = document.getElementById("pubNumber").value || null;
-      const pubYear = document.getElementById("pubYear").value || null;
-      const notes = document.getElementById("notes").value || null;
-
-      const country = countryData.find(c => c.name_ar === countryName);
-      const crop = cropData.find(c => c.name_ar === cropName);
-
-      if (!country || !crop) {
-        msg.innerHTML = "<p class='error'>يرجى اختيار الدولة والمحصول من القائمة الصحيحة.</p>";
-        return;
+      if (!country_name || !crop_name || !full_requirements) {
+        return document.getElementById("message").textContent = "يرجى إدخال البيانات الأساسية (الدولة - المحصول - الاشتراط الكامل)";
       }
 
-      const { data: userData } = await supabase.auth.getUser();
-      const user_id = userData?.user?.id;
-
-      if (!user_id) {
-        msg.innerHTML = "<p class='error'>يجب تسجيل الدخول أولاً.</p>";
-        return;
-      }
-
-      const { error } = await supabase.from("export_requirements").insert({
-        user_id,
-        country_id: country.id,
-        crop_id: crop.id,
-        publication_number: pubNumber,
-        publication_year: pubYear,
-        full_requirements: notes
-      });
+      const { error } = await supabase.from("export_requirements").insert([
+        {
+          user_id: user.id,
+          country_name,
+          crop_name,
+          short_summary,
+          full_requirements,
+          publication_number,
+          publication_year
+        }
+      ]);
 
       if (error) {
-        msg.innerHTML = `<p class='error'>❌ حدث خطأ أثناء الحفظ: ${error.message}</p>`;
+        document.getElementById("message").textContent = "حدث خطأ أثناء الحفظ.";
       } else {
-        msg.innerHTML = "<p class='success'>✅ تم حفظ الاشتراط بنجاح!</p>";
-        form.reset();
+        document.getElementById("message").textContent = "✅ تم حفظ الاشتراط بنجاح.";
+        document.getElementById("country_name").value = "";
+        document.getElementById("crop_name").value = "";
+        document.getElementById("short_summary").value = "";
+        document.getElementById("full_requirements").value = "";
+        document.getElementById("publication_number").value = "";
+        document.getElementById("publication_year").value = "";
       }
     });
-
-    loadLists();
   </script>
 </body>
 </html>
