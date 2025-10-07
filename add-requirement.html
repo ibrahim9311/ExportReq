@@ -1,30 +1,197 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>إضافة اشتراط جديد - ExportReq</title>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل اشتراط تصديري جديد</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background-color: #f3f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .logout-btn, .back-btn {
+      background-color: #e53935;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: "Cairo", sans-serif;
+      margin-right: 10px;
+    }
+
+    .logout-btn:hover, .back-btn:hover {
+      background-color: #b71c1c;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: "Cairo", sans-serif;
+    }
+
+    button[type="submit"] {
+      background-color: #00796b;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #004d40;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="page-center">
-    <div class="card">
-      <h3 class="mb-3 text-center">إضافة اشتراط تصدير جديد</h3>
-      <form id="addForm">
-        <div class="mb-3"><label class="form-label">معرف الدولة (ID)</label><input id="country_id" class="form-control" type="number" required></div>
-        <div class="mb-3"><label class="form-label">معرف المحصول (ID)</label><input id="crop_id" class="form-control" type="number" required></div>
-        <div class="mb-3"><label class="form-label">نص الاشتراط الكامل</label><textarea id="full_requirements" class="form-control" rows="5" required></textarea></div>
-        <div class="mb-3"><label class="form-label">رقم النشر</label><input id="publication_number" class="form-control"></div>
-        <div class="mb-3"><label class="form-label">سنة النشر</label><input id="publication_year" class="form-control" type="number"></div>
-        <div class="mb-3"><label class="form-label">رابط PDF (اختياري)</label><input id="pdf_file_url" class="form-control" type="url"></div>
-        <button class="btn btn-primary w-100" type="submit">حفظ</button>
-      </form>
-      <div class="footer">منصة اشتراطات التصدير © 2025</div>
+  <div class="header">
+    <div>
+      <button class="back-btn" onclick="window.location.href='requirements.html'">⬅️ رجوع</button>
     </div>
+    <h3>تسجيل اشتراط تصديري جديد</h3>
+    <button class="logout-btn" id="logout-btn">تسجيل الخروج</button>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase.js"></script>
-<script src="js/add-requirement.js"></script>
+  <div class="container">
+    <form id="requirementForm">
+      <label>الدولة:</label>
+      <select id="countrySelect" required></select>
+
+      <label>المحصول:</label>
+      <select id="cropSelect" required></select>
+
+      <label>رقم النشر:</label>
+      <input type="text" id="publicationNumber" required />
+
+      <label>سنة النشر:</label>
+      <input type="number" id="publicationYear" required />
+
+      <label>نص الاشتراط الكامل:</label>
+      <textarea id="fullRequirements" rows="4" required></textarea>
+
+      <label>رابط ملف PDF (اختياري):</label>
+      <input type="text" id="pdfFileUrl" />
+
+      <label>ملاحظات:</label>
+      <textarea id="notes" rows="2"></textarea>
+
+      <button type="submit">💾 حفظ الاشتراط</button>
+    </form>
+  </div>
+
+  <script>
+    const logoutBtn = document.getElementById("logout-btn");
+
+    // تسجيل الخروج
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        window.location.href = "login.html";
+      } catch (err) {
+        alert("حدث خطأ أثناء تسجيل الخروج: " + err.message);
+      }
+    });
+
+    // تحميل الدول والمحاصيل
+    async function loadDropdowns() {
+      try {
+        const { data: countries } = await supabase.from("countries").select("id, name_ar");
+        const { data: crops } = await supabase.from("crops").select("id, name_ar");
+
+        const countrySelect = document.getElementById("countrySelect");
+        const cropSelect = document.getElementById("cropSelect");
+
+        countrySelect.innerHTML = '<option value="">اختر الدولة</option>';
+        cropSelect.innerHTML = '<option value="">اختر المحصول</option>';
+
+        countries?.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name_ar;
+          countrySelect.appendChild(opt);
+        });
+
+        crops?.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name_ar;
+          cropSelect.appendChild(opt);
+        });
+      } catch (error) {
+        console.error("Error loading dropdowns:", error);
+      }
+    }
+
+    loadDropdowns();
+
+    // حفظ الاشتراط
+    const form = document.getElementById("requirementForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return alert("يجب تسجيل الدخول أولاً.");
+
+      const { data, error } = await supabase.from("export_requirements").insert([
+        {
+          user_id: user.id,
+          country_id: document.getElementById("countrySelect").value,
+          crop_id: document.getElementById("cropSelect").value,
+          publication_number: document.getElementById("publicationNumber").value,
+          publication_year: parseInt(document.getElementById("publicationYear").value),
+          full_requirements: document.getElementById("fullRequirements").value,
+          pdf_file_url: document.getElementById("pdfFileUrl").value || null,
+          notes: document.getElementById("notes").value || null,
+        },
+      ]);
+
+      if (error) {
+        console.error(error);
+        alert("حدث خطأ أثناء حفظ الاشتراط: " + error.message);
+      } else {
+        alert("✅ تم حفظ الاشتراط بنجاح!");
+        window.location.href = "requirements.html";
+      }
+    });
+  </script>
 </body>
 </html>
