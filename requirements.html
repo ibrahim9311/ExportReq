@@ -30,15 +30,10 @@
       cursor: pointer;
       margin-left: 8px;
     }
-    .btn:hover { background-color: #0056b3; }
-    .logout-btn {
-      background-color: #dc3545;
-    }
-    .logout-btn:hover {
-      background-color: #a71d2a;
-    }
+    .logout-btn { background-color: #dc3545; }
+    .logout-btn:hover { background-color: #a71d2a; }
     .container { padding: 20px; }
-    input, textarea, button {
+    input, textarea, select, button {
       width: 100%;
       font-size: 16px;
       padding: 10px;
@@ -67,10 +62,12 @@
 
   <div class="container">
     <label>الدولة:</label>
-    <input type="text" id="country_name" placeholder="اسم الدولة">
+    <input list="country-list" id="country_name" placeholder="اختر أو اكتب اسم الدولة">
+    <datalist id="country-list"></datalist>
 
     <label>المحصول:</label>
-    <input type="text" id="crop_name" placeholder="اسم المحصول">
+    <input list="crop-list" id="crop_name" placeholder="اختر أو اكتب اسم المحصول">
+    <datalist id="crop-list"></datalist>
 
     <label>الاشتراط المختصر (اختياري):</label>
     <textarea id="short_summary" rows="2"></textarea>
@@ -93,18 +90,38 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // الانتقال إلى صفحة البحث
+    // تحميل القوائم عند فتح الصفحة
+    window.addEventListener("DOMContentLoaded", async () => {
+      const { data: countries } = await supabase.from("countries").select("id, name");
+      const { data: crops } = await supabase.from("crops").select("id, name");
+
+      const countryList = document.getElementById("country-list");
+      const cropList = document.getElementById("crop-list");
+
+      countries?.forEach(c => {
+        const option = document.createElement("option");
+        option.value = c.name;
+        option.dataset.id = c.id;
+        countryList.appendChild(option);
+      });
+
+      crops?.forEach(c => {
+        const option = document.createElement("option");
+        option.value = c.name;
+        option.dataset.id = c.id;
+        cropList.appendChild(option);
+      });
+    });
+
     document.getElementById("search-page").addEventListener("click", () => {
       window.location.href = "search.html";
     });
 
-    // تسجيل الخروج
     document.getElementById("logout-btn").addEventListener("click", async () => {
       await supabase.auth.signOut();
       window.location.href = "login.html";
     });
 
-    // الحفظ
     document.getElementById("save-btn").addEventListener("click", async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return alert("يجب تسجيل الدخول أولاً.");
