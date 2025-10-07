@@ -1,194 +1,153 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>قائمة الاشتراطات التصديرية</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
+  <meta charset="UTF-8">
+  <title>إضافة اشتراط جديد</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
     body {
-      font-family: "Cairo", sans-serif;
-      background-color: #f5f8fa;
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f7f7f7;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      color: #333;
     }
-
-    .header {
+    header {
+      background-color: #1e1e2f;
+      color: white;
+      padding: 15px 25px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #fff;
-      padding: 10px 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
     }
-
-    .logout-btn, .add-btn {
-      background-color: #00796b;
-      color: #fff;
+    h2 {
+      margin: 0;
+    }
+    .nav-btn {
+      background-color: #007bff;
+      color: white;
       border: none;
       padding: 8px 16px;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: 0.3s;
-      font-family: "Cairo", sans-serif;
-      margin-left: 10px;
+      margin-left: 8px;
     }
-
+    .nav-btn:hover {
+      background-color: #0056b3;
+    }
     .logout-btn {
-      background-color: #e53935;
+      background-color: #dc3545;
     }
-
     .logout-btn:hover {
-      background-color: #b71c1c;
+      background-color: #a71d2a;
     }
-
-    .add-btn:hover {
-      background-color: #004d40;
-    }
-
-    .table-container {
-      background: #fff;
+    .container {
       padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
-    table {
+    input, textarea, select, button {
       width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      text-align: center;
+      font-size: 16px;
       padding: 10px;
-      border-bottom: 1px solid #ddd;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
-
-    th {
-      background-color: #00796b;
-      color: #fff;
+    button.save-btn {
+      background-color: #43a047;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
-
-    tr:hover {
-      background-color: #f1f1f1;
-    }
-
-    .no-data {
-      text-align: center;
-      color: #666;
-      padding: 20px;
+    button.save-btn:hover {
+      background-color: #2e7d32;
     }
   </style>
 </head>
-
 <body>
-  <div class="header">
-    <h3>قائمة الاشتراطات التصديرية</h3>
+  <header>
+    <h2>➕ إضافة اشتراط جديد</h2>
     <div>
-      <button class="add-btn" id="addBtn" style="display:none;">➕ إضافة اشتراط جديد</button>
-      <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
+      <button id="to-search-btn" class="nav-btn">🔍 صفحة البحث</button>
+      <button id="logout-btn" class="logout-btn nav-btn">🚪 تسجيل الخروج</button>
     </div>
-  </div>
+  </header>
 
-  <div class="table-container">
-    <table id="requirementsTable">
-      <thead>
-        <tr>
-          <th>الدولة</th>
-          <th>المحصول</th>
-          <th>رقم النشر</th>
-          <th>سنة النشر</th>
-          <th>ملاحظات</th>
-        </tr>
-      </thead>
-      <tbody id="requirementsBody">
-        <tr><td colspan="5" class="no-data">جاري تحميل البيانات...</td></tr>
-      </tbody>
-    </table>
+  <div class="container">
+    <label>الدولة:</label>
+    <input type="text" id="country_name" placeholder="اسم الدولة">
+
+    <label>المحصول:</label>
+    <input type="text" id="crop_name" placeholder="اسم المحصول">
+
+    <label>الاشتراط المختصر:</label>
+    <textarea id="short_summary" rows="2" placeholder="اختصار الاشتراط (اختياري)"></textarea>
+
+    <label>الاشتراط الكامل:</label>
+    <textarea id="full_requirements" rows="4"></textarea>
+
+    <label>رقم المنشور (اختياري):</label>
+    <input type="text" id="publication_number">
+
+    <label>سنة المنشور (اختياري):</label>
+    <input type="text" id="publication_year">
+
+    <button class="save-btn" id="save-btn">💾 حفظ الاشتراط</button>
+    <p id="message"></p>
   </div>
 
   <script>
-    const logoutBtn = document.getElementById("logoutBtn");
-    const addBtn = document.getElementById("addBtn");
+    const supabaseUrl = "https://uulzslgyqygvtpfgeecr.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // تسجيل الخروج
-    logoutBtn.addEventListener("click", async () => {
-      const { error } = await supabase.auth.signOut();
-      if (!error) window.location.href = "login.html";
+    document.getElementById("to-search-btn").addEventListener("click", () => {
+      window.location.href = "search.html";
     });
 
-    // تحميل الاشتراطات
-    async function loadRequirements() {
-      const userRes = await supabase.auth.getUser();
-      const user = userRes.data.user;
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      window.location.href = "login.html";
+    });
 
-      if (!user) {
-        window.location.href = "login.html";
-        return;
+    document.getElementById("save-btn").addEventListener("click", async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("يجب تسجيل الدخول أولاً.");
+
+      const country_name = document.getElementById("country_name").value.trim();
+      const crop_name = document.getElementById("crop_name").value.trim();
+      const short_summary = document.getElementById("short_summary").value.trim();
+      const full_requirements = document.getElementById("full_requirements").value.trim();
+      const publication_number = document.getElementById("publication_number").value.trim();
+      const publication_year = document.getElementById("publication_year").value.trim();
+
+      if (!country_name || !crop_name || !full_requirements) {
+        return document.getElementById("message").textContent = "يرجى إدخال البيانات الأساسية (الدولة - المحصول - الاشتراط الكامل)";
       }
 
-      // جلب الدور من جدول profiles
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role_id")
-        .eq("id", user.id)
-        .single();
-
-      // إذا كان المستخدم مدير أو مشرف، أظهر زر الإضافة
-      if (profile && (profile.role_id === 1 || profile.role_id === 2)) {
-        addBtn.style.display = "inline-block";
-      }
-
-      // عند الضغط على زر الإضافة
-      addBtn.addEventListener("click", () => {
-        window.location.href = "add-requirement.html";
-      });
-
-      // تحميل الاشتراطات مع أسماء الدول والمحاصيل
-      const { data, error } = await supabase
-        .from("export_requirements")
-        .select(`
-          id,
+      const { error } = await supabase.from("export_requirements").insert([
+        {
+          user_id: user.id,
+          country_name,
+          crop_name,
+          short_summary,
+          full_requirements,
           publication_number,
-          publication_year,
-          notes,
-          countries (name_ar),
-          crops (name_ar)
-        `)
-        .order("id", { ascending: false });
-
-      const tableBody = document.getElementById("requirementsBody");
-      tableBody.innerHTML = "";
+          publication_year
+        }
+      ]);
 
       if (error) {
-        console.error(error);
-        tableBody.innerHTML = `<tr><td colspan="5" class="no-data">حدث خطأ أثناء تحميل البيانات.</td></tr>`;
-        return;
+        document.getElementById("message").textContent = "حدث خطأ أثناء الحفظ.";
+      } else {
+        document.getElementById("message").textContent = "✅ تم حفظ الاشتراط بنجاح.";
+        document.getElementById("country_name").value = "";
+        document.getElementById("crop_name").value = "";
+        document.getElementById("short_summary").value = "";
+        document.getElementById("full_requirements").value = "";
+        document.getElementById("publication_number").value = "";
+        document.getElementById("publication_year").value = "";
       }
-
-      if (!data || data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="no-data">لا توجد اشتراطات حالياً.</td></tr>`;
-        return;
-      }
-
-      data.forEach(req => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${req.countries?.name_ar || "-"}</td>
-          <td>${req.crops?.name_ar || "-"}</td>
-          <td>${req.publication_number || "-"}</td>
-          <td>${req.publication_year || "-"}</td>
-          <td>${req.notes || "-"}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-
-    loadRequirements();
+    });
   </script>
 </body>
 </html>
