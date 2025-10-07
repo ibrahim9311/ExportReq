@@ -10,7 +10,7 @@
   <style>
     body {
       font-family: "Cairo", sans-serif;
-      background-color: #f6f8fa;
+      background-color: #f5f8fa;
       margin: 0;
       padding: 20px;
     }
@@ -144,7 +144,27 @@
       }
     });
 
-    // تحميل الدول والمحاصيل
+    // تحقق من الدور
+    async function checkRole() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || (profile.role_id !== 1 && profile.role_id !== 2)) {
+        alert("❌ غير مصرح لك بالدخول إلى هذه الصفحة.");
+        window.location.href = "requirements.html";
+      }
+    }
+
+    // تحميل القوائم
     async function loadDropdowns() {
       try {
         const { data: countries } = await supabase.from("countries").select("id, name_ar");
@@ -175,6 +195,7 @@
     }
 
     loadDropdowns();
+    checkRole();
 
     // حفظ الاشتراط
     const form = document.getElementById("requirementForm");
