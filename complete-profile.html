@@ -1,80 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>استكمال البيانات الشخصية</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-  <<link rel="stylesheet" href="css/style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>استكمال الملف - ExportReq</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="card">
-    <h3 class="mb-4 text-center">استكمال البيانات الشخصية</h3>
-    <form id="profile-form">
-      <div class="mb-3">
-        <label for="full_name_ar" class="form-label">الاسم الكامل</label>
-        <input type="text" id="full_name_ar" class="form-control" required placeholder="أدخل اسمك الكامل">
-      </div>
-      <div class="mb-3">
-        <label for="phone_number" class="form-label">رقم الهاتف</label>
-        <input type="text" id="phone_number" class="form-control" placeholder="أدخل رقم الهاتف">
-      </div>
-      <div class="mb-3">
-        <label for="company_name" class="form-label">اسم الشركة / الجهة</label>
-        <input type="text" id="company_name" class="form-control" placeholder="اختياري">
-      </div>
-      <div class="mb-3">
-        <label for="client_number" class="form-label">رقم العميل</label>
-        <input type="text" id="client_number" class="form-control" placeholder="اختياري">
-      </div>
-      <button type="submit" class="btn btn-primary w-100">حفظ البيانات</button>
-    </form>
+  <div class="page-center">
+    <div class="card">
+      <h3 class="mb-3 text-center">استكمال بيانات الحساب</h3>
+      <form id="profileForm">
+        <div class="mb-3">
+          <label class="form-label">الاسم الكامل</label>
+          <input id="full_name_ar" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">رقم العميل (اختياري)</label>
+          <input id="client_number" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">اسم الشركة (اختياري)</label>
+          <input id="company_name" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">رقم الجوال (اختياري)</label>
+          <input id="phone_number" class="form-control">
+        </div>
+        <button class="btn btn-primary w-100" type="submit">حفظ وإكمال</button>
+      </form>
+      <div class="footer">منصة اشتراطات التصدير © 2025</div>
+    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://uulzslgyqygvtpfgeecr.supabase.co";
-    const SUPABASE_ANON_KEY =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  (async () => {
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (access_token && refresh_token) {
+      await supabase.auth.setSession({ access_token, refresh_token});
+      history.replaceState(null, '', window.location.pathname);
+    }
+  })();
 
-    document.getElementById("profile-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert("لم يتم العثور على مستخدم مسجل دخول. الرجاء تسجيل الدخول أولاً.");
-        window.location.href = "/login.html";
-        return;
-      }
-
-      const full_name_ar = document.getElementById("full_name_ar").value.trim();
-      const phone_number = document.getElementById("phone_number").value.trim();
-      const company_name = document.getElementById("company_name").value.trim();
-      const client_number = document.getElementById("client_number").value.trim();
-
-      const { error } = await supabase
-        .from("profiles")
-        .upsert([
-          {
-            id: user.id,
-            full_name_ar,
-            phone_number,
-            company_name,
-            notes: client_number || null,
-            role_id: 4, // مشاهد
-            is_active: true
-          }
-        ]);
-
-      if (error) {
-        console.error(error);
-        alert("حدث خطأ أثناء حفظ البيانات: " + error.message);
-      } else {
-        alert("✅ تم حفظ البيانات بنجاح");
-        window.location.href = "/index.html";
-      }
-    });
-  </script>
+  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await submitProfile();
+  });
+</script>
 </body>
 </html>

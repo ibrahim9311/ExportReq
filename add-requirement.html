@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>إضافة اشتراط جديد - ExportReq</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page-center">
+    <div class="card">
+      <h3 class="mb-3 text-center">إضافة اشتراط تصدير جديد</h3>
+      <form id="addForm">
+        <div class="mb-3"><label class="form-label">معرف الدولة (ID)</label><input id="country_id" class="form-control" type="number" required></div>
+        <div class="mb-3"><label class="form-label">معرف المحصول (ID)</label><input id="crop_id" class="form-control" type="number" required></div>
+        <div class="mb-3"><label class="form-label">نص الاشتراط الكامل</label><textarea id="full_requirements" class="form-control" rows="5" required></textarea></div>
+        <div class="mb-3"><label class="form-label">رقم النشر</label><input id="publication_number" class="form-control"></div>
+        <div class="mb-3"><label class="form-label">سنة النشر</label><input id="publication_year" class="form-control" type="number"></div>
+        <div class="mb-3"><label class="form-label">رابط PDF (اختياري)</label><input id="pdf_file_url" class="form-control" type="url"></div>
+        <button class="btn btn-primary w-100" type="submit">حفظ</button>
+      </form>
+      <div class="footer">منصة اشتراطات التصدير © 2025</div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/add-requirement.js"></script>
+</body>
+</html>
