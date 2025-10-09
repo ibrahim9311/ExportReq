@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import SearchClient from './search-client';
 import { ComboboxOption } from '@/components/ui/combobox';
 
@@ -23,7 +22,6 @@ async function getInitialData(supabase: SupabaseClient) {
 }
 
 export default async function SearchPage() {
-    const cookieStore = cookies();
     const supabase = createClient();
 
     const { countries, crops } = await getInitialData(supabase);

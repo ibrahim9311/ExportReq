@@ -123,48 +123,22 @@ export default function EditRequirementPage() {
       newPdfUrl = urlData.publicUrl;
     }
 
-    // 2. Update the main requirement
-    const { error: updateError } = await supabase
-      .from('export_requirements')
-      .update({
-        country_id: parseInt(selectedCountry),
-        crop_id: parseInt(selectedCrop),
-        full_requirements: fullRequirements,
-        publication_number: publicationNumber,
-        publication_year: publicationYear || null,
-        pdf_file_url: newPdfUrl,
-      })
-      .eq('id', requirementId);
+    // 2. Call the RPC function to update everything atomically
+    const { error: rpcError } = await supabase.rpc('update_requirement_with_shorts', {
+      req_id: parseInt(requirementId),
+      p_country_id: parseInt(selectedCountry),
+      p_crop_id: parseInt(selectedCrop),
+      p_full_requirements: fullRequirements,
+      p_publication_number: publicationNumber,
+      p_publication_year: publicationYear || null,
+      p_pdf_file_url: newPdfUrl,
+      p_short_req_ids: selectedShortReqs,
+    });
 
-    if (updateError) {
-      toast.error('فشل تحديث الاشتراط', { description: updateError.message });
+    if (rpcError) {
+      toast.error('فشل تحديث الاشتراط', { description: rpcError.message });
       setIsSubmitting(false);
       return;
-    }
-
-    // 3. Update short requirements links (delete old, insert new)
-    // This is a common pattern for many-to-many updates.
-    const { error: deleteLinksError } = await supabase
-      .from('requirement_short_requirements')
-      .delete()
-      .eq('requirement_id', requirementId);
-
-    if (deleteLinksError) {
-      toast.warning('فشل تحديث الاشتراطات المختصرة (حذف).');
-    }
-
-    if (selectedShortReqs.length > 0) {
-      const newLinks = selectedShortReqs.map(shortId => ({
-        requirement_id: parseInt(requirementId),
-        short_requirement_id: shortId,
-      }));
-      const { error: insertLinksError } = await supabase
-        .from('requirement_short_requirements')
-        .insert(newLinks);
-
-      if (insertLinksError) {
-        toast.warning('فشل تحديث الاشتراطات المختصرة (إضافة).');
-      }
     }
 
     toast.success('تم تحديث الاشتراط بنجاح!');
