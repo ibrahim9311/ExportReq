@@ -104,7 +104,7 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
       // The dependency array ensures this only runs when the URL params change.
       handleSearch(countryQuery, cropQuery); 
     }
-  }, [searchParams, handleSearch, setSelectedCountry, setSelectedCrop]);
+  }, [searchParams, handleSearch]);
 
   const handleReset = () => {
     setSelectedCountry('');
