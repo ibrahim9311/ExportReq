@@ -17,13 +17,13 @@ type ComboboxOption = {
 
 type RequirementResult = {
   id: number;
-  full_requirements: string;
-  publication_number: string;
-  publication_year: number;
-  pdf_file_url: string;
+  full_requirements: string | null;
+  publication_number: string | null;
+  publication_year: number | null;
+  pdf_file_url: string | null;
   requirement_short_requirements: {
     short_requirements: {
-      name: string;
+      name: string | null;
     } | null;
   }[];
 };
