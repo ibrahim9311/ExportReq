@@ -84,7 +84,31 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
         .eq('crop_id', finalCropId)
         .single();
 
-      setSearchResult(data ? (data as RequirementResult) : 'not_found');
+      if (data) {
+        // Fix: Map short_requirements to match expected type
+        const fixedData: RequirementResult = {
+          ...data,
+          requirement_short_requirements: (data.requirement_short_requirements || []).map((item: any) => {
+            // item.short_requirements is an array, but we want an object or null
+            if (Array.isArray(item.short_requirements)) {
+              const first = item.short_requirements[0];
+              return {
+                short_requirements: first && typeof first.name === "string"
+                  ? { name: first.name }
+                  : null,
+              };
+            }
+            return {
+              short_requirements: item.short_requirements && typeof item.short_requirements.name === "string"
+                ? { name: item.short_requirements.name }
+                : null,
+            };
+          }),
+        };
+        setSearchResult(fixedData);
+      } else {
+        setSearchResult('not_found');
+      }
     } catch (error) {
       console.error("Search error:", error);
       setSearchResult('not_found'); // Or handle error state differently
