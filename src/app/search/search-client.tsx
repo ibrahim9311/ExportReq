@@ -2,21 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Loader2, FileText, Calendar, Hash, MessageSquarePlus } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowRight, Loader2, FileText, Calendar, Hash } from 'lucide-react';
 
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-
-type Country = { id: number; name_ar: string };
-type Crop = { id: number; name_ar: string };
 type RequirementResult = {
   id: number;
   full_requirements: string;
@@ -38,6 +31,7 @@ interface SearchClientProps {
 export default function SearchClient({ initialCountries, initialCrops }: SearchClientProps) {
   const supabase = createClient();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   // Data lists
@@ -49,11 +43,52 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
   const [selectedCrop, setSelectedCrop] = useState<string>('');
 
   // UI state
-  const [loading, setLoading] = useState(false); // Will be handled by Suspense in the future
   const [searching, setSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<RequirementResult | null | 'not_found'>(null);
-  const [feedbackText, setFeedbackText] = useState('');
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
+  const handleSearch = useCallback(async (countryId?: string, cropId?: string) => {
+    const finalCountryId = countryId || selectedCountry;
+    const finalCropId = cropId || selectedCrop;
+
+    if (!finalCountryId || !finalCropId) {
+      return;
+    }
+
+    // Update URL without reloading
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    current.set('country', finalCountryId);
+    current.set('crop', finalCropId);
+    const search = current.toString();
+    const query = search ? `?${search}` : "";
+    router.push(`${pathname}${query}`, { scroll: false });
+
+    setSearching(true);
+    setSearchResult(null);
+
+    try {
+      const { data } = await supabase
+        .from('export_requirements')
+        .select(`
+          id,
+          full_requirements,
+          publication_number,
+          publication_year,
+          pdf_file_url,
+          requirement_short_requirements (
+            short_requirements ( name )
+          )
+        `)
+        .eq('country_id', finalCountryId)
+        .eq('crop_id', finalCropId)
+        .single();
+
+      setSearchResult(data ? (data as RequirementResult) : 'not_found');
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResult('not_found'); // Or handle error state differently
+    }
+    setSearching(false);
+  }, [selectedCountry, selectedCrop, supabase, searchParams, router, pathname]);
 
   useEffect(() => {
     // Auto-search if query params exist
@@ -64,77 +99,13 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
       setSelectedCrop(cropQuery);
       handleSearch(countryQuery, cropQuery);
     }
-
-  }, []); // Run only once on mount
-
-  const handleSearch = async (countryId?: string, cropId?: string) => {
-    const finalCountryId = countryId || selectedCountry;
-    const finalCropId = cropId || selectedCrop;
-    if (!finalCountryId || !finalCropId) {
-      alert('الرجاء اختيار الدولة والمحصول');
-      return;
-    }
-    setSearching(true);
-    setSearchResult(null);
-
-    const { data, error } = await supabase
-      .from('export_requirements')
-      .select(`
-        id,
-        full_requirements,
-        publication_number,
-        publication_year,
-        pdf_file_url,
-        requirement_short_requirements (
-          short_requirements ( name )
-        )
-      `)
-      .eq('country_id', finalCountryId)
-      .eq('crop_id', finalCropId)
-      .single();
-
-    if (data) {
-      setSearchResult(data as RequirementResult);
-    } else {
-      setSearchResult('not_found');
-    }
-    setSearching(false);
-  };
+  }, [searchParams, handleSearch]); // Run only when searchParams change
 
   const handleReset = () => {
     setSelectedCountry('');
     setSelectedCrop('');
     setSearchResult(null);
     router.push('/search'); // Clear URL params
-  };
-
-  const handleFeedbackSubmit = async () => {
-    if (!feedbackText.trim() || !searchResult || typeof searchResult === 'string') return;
-
-    setIsSubmittingFeedback(true);
-    const { data, error: userError } = await supabase.auth.getUser();
-    const user = data?.user;
-
-    if (!user) {
-      toast.error("يجب تسجيل الدخول لتقديم ملاحظة.");
-      setIsSubmittingFeedback(false);
-      return;
-    }
-
-    const { error } = await supabase.from('feedback').insert([{
-      requirement_id: searchResult.id,
-      user_id: user.id,
-      comment_text: feedbackText,
-    }]);
-
-    if (error) {
-      toast.error("فشل إرسال الملاحظة", { description: error.message });
-    } else {
-      toast.success("شكراً لك! تم إرسال ملاحظتك بنجاح.");
-      document.getElementById('close-feedback-dialog')?.click();
-      setFeedbackText('');
-    }
-    setIsSubmittingFeedback(false);
   };
 
   return (

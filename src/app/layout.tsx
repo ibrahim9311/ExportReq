@@ -17,6 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
+      <head />
       <body className={inter.className}>
         {children}
         <Toaster richColors />

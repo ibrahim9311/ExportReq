@@ -2,6 +2,7 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { PostgrestError } from '@supabase/supabase-js';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -67,7 +68,7 @@ export default function EditRequirementPage() {
         supabase.from('export_requirements').select(`
             country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url,
             requirement_short_requirements(short_requirement_id)
-        `).eq('id', requirementId).single() as { data: RequirementData | null, error: any },
+        `).eq('id', requirementId).single() as { data: RequirementData | null, error: PostgrestError | null },
       ]);
 
       // Populate lists
@@ -244,7 +245,7 @@ export default function EditRequirementPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="pub-year">سنة النشر</Label>
-              <Input id="pub-year" type="number" value={publicationYear} onChange={e => setPublicationYear(parseInt(e.target.value) || '')} />
+              <Input id="pub-year" type="number" value={publicationYear ?? ''} onChange={e => setPublicationYear(parseInt(e.target.value) || '')} />
             </div>
             <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="pdf-file">تغيير/إضافة ملف المنشور (PDF)</Label>

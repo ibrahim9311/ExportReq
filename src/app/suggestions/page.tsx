@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { PostgrestError } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -57,7 +58,7 @@ export default async function SuggestionsPage() {
         crops ( id, name_ar )
       )
     `)
-    .order('created_at', { ascending: false }) as { data: Feedback[] | null, error: any };
+    .order('created_at', { ascending: false }) as { data: Feedback[] | null, error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching feedback:", error);
