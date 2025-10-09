@@ -112,7 +112,8 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
     if (!feedbackText.trim() || !searchResult || typeof searchResult === 'string') return;
 
     setIsSubmittingFeedback(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error: userError } = await supabase.auth.getUser();
+    const user = data?.user;
 
     if (!user) {
       toast.error("يجب تسجيل الدخول لتقديم ملاحظة.");
@@ -120,11 +121,11 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
       return;
     }
 
-    const { error } = await supabase.from('feedback').insert({
+    const { error } = await supabase.from('feedback').insert([{
       requirement_id: searchResult.id,
       user_id: user.id,
       comment_text: feedbackText,
-    });
+    }]);
 
     if (error) {
       toast.error("فشل إرسال الملاحظة", { description: error.message });
@@ -153,75 +154,75 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
       ) : (
       <>
       <Card>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <Combobox
-              options={countries}
-              value={selectedCountry}
-              onChange={setSelectedCountry}
-              placeholder="اختر الدولة..."
-              searchPlaceholder="ابحث عن دولة..."
-              emptyPlaceholder="لم يتم العثور على الدولة."
-            />
-            <Combobox
-              options={crops}
-              value={selectedCrop}
-              onChange={setSelectedCrop}
-              placeholder="اختر المحصول..."
-              searchPlaceholder="ابحث عن محصول..."
-              emptyPlaceholder="لم يتم العثور على المحصول."
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button onClick={() => handleSearch()} disabled={searching || !selectedCountry || !selectedCrop}>
-              {searching && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              بحث
-            </Button>
-            <Button onClick={handleReset} variant="ghost">إعادة البحث</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {searching && <div className="text-center mt-8">جاري البحث...</div>}
-
-      {searchResult === 'not_found' && (
-        <Card className="mt-6 bg-yellow-50 border-yellow-200">
-          <CardHeader>
-            <CardTitle>لا توجد نتائج</CardTitle>
-            <CardDescription>لم يتم العثور على اشتراطات مطابقة لبحثك. يمكنك إضافة اقتراح أو ملحوظة.</CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
-      {searchResult && typeof searchResult !== 'string' && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>نتائج البحث</CardTitle>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-              <span className="flex items-center gap-1"><Hash size={14} /> رقم المنشور: {searchResult.publication_number || 'غير محدد'}</span>
-              <span className="flex items-center gap-1"><Calendar size={14} /> سنة النشر: {searchResult.publication_year || 'غير محدد'}</span>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Combobox
+                options={countries}
+                value={selectedCountry}
+                onChange={setSelectedCountry}
+                placeholder="اختر الدولة..."
+                searchPlaceholder="ابحث عن دولة..."
+                emptyPlaceholder="لم يتم العثور على الدولة."
+              />
+              <Combobox
+                options={crops}
+                value={selectedCrop}
+                onChange={setSelectedCrop}
+                placeholder="اختر المحصول..."
+                searchPlaceholder="ابحث عن محصول..."
+                emptyPlaceholder="لم يتم العثور على المحصول."
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            <h3 className="font-semibold mb-2">الاشتراطات المختصرة:</h3>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {searchResult.requirement_short_requirements.map((sr, i) => (
-                <Badge key={i} variant="secondary">{sr.short_requirements?.name}</Badge>
-              ))}
-            </div>
-            <h3 className="font-semibold mb-2">الاشتراطات الكاملة:</h3>
-            <p className="text-muted-foreground whitespace-pre-wrap">{searchResult.full_requirements}</p>
-            {searchResult.pdf_file_url && (
-              <Button asChild className="mt-4">
-                <a href={searchResult.pdf_file_url} target="_blank" rel="noopener noreferrer">
-                  <FileText className="ml-2 h-4 w-4" />
-                  عرض الملف المرفق
-                </a>
+            <div className="flex gap-2">
+              <Button onClick={() => handleSearch()} disabled={searching || !selectedCountry || !selectedCrop}>
+                {searching && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                بحث
               </Button>
-            )}
+              <Button onClick={handleReset} variant="ghost">إعادة البحث</Button>
+            </div>
           </CardContent>
         </Card>
-      )}
+
+        {searching && <div className="text-center mt-8">جاري البحث...</div>}
+
+        {searchResult === 'not_found' && (
+          <Card className="mt-6 bg-yellow-50 border-yellow-200">
+            <CardHeader>
+              <CardTitle>لا توجد نتائج</CardTitle>
+              <CardDescription>لم يتم العثور على اشتراطات مطابقة لبحثك. يمكنك إضافة اقتراح أو ملحوظة.</CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {searchResult && typeof searchResult !== 'string' && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>نتائج البحث</CardTitle>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
+                <span className="flex items-center gap-1"><Hash size={14} /> رقم المنشور: {searchResult.publication_number || 'غير محدد'}</span>
+                <span className="flex items-center gap-1"><Calendar size={14} /> سنة النشر: {searchResult.publication_year || 'غير محدد'}</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <h3 className="font-semibold mb-2">الاشتراطات المختصرة:</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {searchResult.requirement_short_requirements.map((sr, i) => (
+                  <Badge key={i} variant="secondary">{sr.short_requirements?.name}</Badge>
+                ))}
+              </div>
+              <h3 className="font-semibold mb-2">الاشتراطات الكاملة:</h3>
+              <p className="text-muted-foreground whitespace-pre-wrap">{searchResult.full_requirements}</p>
+              {searchResult.pdf_file_url && (
+                <Button asChild className="mt-4">
+                  <a href={searchResult.pdf_file_url} target="_blank" rel="noopener noreferrer">
+                    <FileText className="ml-2 h-4 w-4" />
+                    عرض الملف المرفق
+                  </a>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </>
       )}
     </div>
