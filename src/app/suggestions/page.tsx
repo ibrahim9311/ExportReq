@@ -65,7 +65,10 @@ export default async function SuggestionsPage() {
             <Card key={fb.id}>
               <CardHeader>
                 <CardDescription className="flex justify-between items-center text-xs">
-                  <span className="flex items-center gap-1"><User size={14} /> {fb.profiles?.full_name_ar || fb.profiles?.username_en}</span>
+                  <span className="flex items-center gap-1">
+                    <User size={14} />
+                    {fb.profiles?.[0]?.full_name_ar || fb.profiles?.[0]?.username_en}
+                  </span>
                   <span className="flex items-center gap-1"><Calendar size={14} /> {format(new Date(fb.created_at), 'yyyy/MM/dd - HH:mm')}</span>
                 </CardDescription>
               </CardHeader>
