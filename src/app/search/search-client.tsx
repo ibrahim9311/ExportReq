@@ -1,27 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, FC } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Loader2, FileText, Calendar, Hash } from 'lucide-react';
 
 import { Combobox } from '@/components/ui/combobox';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-type RequirementResult = {
-  id: number;
-  full_requirements: string;
-  publication_number: string;
-  publication_year: number;
-  pdf_file_url: string;
-  requirement_short_requirements: {
-    short_requirements: {
-      name: string;
-    } | null;
-  }[];
-};
 
 type ComboboxOption = {
   value: string;
@@ -33,20 +20,17 @@ interface SearchClientProps {
     initialCrops: ComboboxOption[];
 }
 
-export default function SearchClient({ initialCountries, initialCrops }: SearchClientProps) {
+const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops }) => {
   const supabase = createClient();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   // Data lists
-  const [countries] = useState<ComboboxOption[]>(initialCountries);
-  const [crops] = useState<ComboboxOption[]>(initialCrops);
 
   // Form state
   const [selectedCountry, setSelectedCountry] = useState<string>('');
   const [selectedCrop, setSelectedCrop] = useState<string>('');
-
   // UI state
   const [searching, setSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<RequirementResult | null | 'not_found'>(null);
@@ -100,14 +84,12 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
     const countryQuery = searchParams.get('country');
     const cropQuery = searchParams.get('crop');
     if (countryQuery && cropQuery) {
-      setSelectedCountry(countryQuery);
-      setSelectedCrop(cropQuery);
       // We call handleSearch inside a useCallback to avoid re-creating it on every render
       // but we need to call it here with the initial values from the URL.
       // The dependency array ensures this only runs when the URL params change.
       handleSearch(countryQuery, cropQuery); 
     }
-  }, [searchParams, handleSearch]);
+  }, [searchParams, handleSearch, setSelectedCountry, setSelectedCrop]);
 
   const handleReset = () => {
     setSelectedCountry('');
@@ -136,7 +118,7 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <Combobox
-                options={countries}
+                options={initialCountries}
                 value={selectedCountry}
                 onChange={setSelectedCountry}
                 placeholder="اختر الدولة..."
@@ -144,7 +126,7 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
                 emptyPlaceholder="لم يتم العثور على الدولة."
               />
               <Combobox
-                options={crops}
+                options={initialCrops}
                 value={selectedCrop}
                 onChange={setSelectedCrop}
                 placeholder="اختر المحصول..."
@@ -207,3 +189,5 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
     </div>
   );
 }
+
+export default SearchClient;

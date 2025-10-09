@@ -1,11 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import SearchClient from './search-client';
-import { ComboboxOption } from '@/components/ui/combobox';
 
 type Country = { id: number; name_ar: string };
 type Crop = { id: number; name_ar: string };
-
+type ComboboxOption = { value: string; label: string };
 async function getInitialData(supabase: SupabaseClient) {
     const [
         { data: countriesData },
