@@ -17,8 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <head />
-      <body className={inter.className}>
+      {/* Next.js expects <head> to be a child of <html>, but it must not be self-closing */}
+      <head></head>
+      <body className={inter.className} suppressHydrationWarning>
         {children}
         <Toaster richColors />
       </body>
