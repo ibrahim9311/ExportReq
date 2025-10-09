@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import SearchClient from './search-client';
-
 type Country = { id: number; name_ar: string };
 type Crop = { id: number; name_ar: string };
 type ComboboxOption = { value: string; label: string };

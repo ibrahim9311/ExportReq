@@ -71,7 +71,7 @@ export default function EditRequirementPage() {
         supabase.from('export_requirements').select(`
             country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url,
             requirement_short_requirements(short_requirement_id)
-        `).eq('id', requirementId).single() as { data: RequirementData | null, error: PostgrestError | null },
+        `).eq('id', requirementId).single(),
       ]);
 
       // Populate lists

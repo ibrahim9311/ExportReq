@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Loader2, FileText, Calendar, Hash } from 'lucide-react';
-
+import { Button } from '@/components/ui/button';
 import { Combobox } from '@/components/ui/combobox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,19 @@ import { Badge } from '@/components/ui/badge';
 type ComboboxOption = {
   value: string;
   label: string;
+};
+
+type RequirementResult = {
+  id: number;
+  full_requirements: string;
+  publication_number: string;
+  publication_year: number;
+  pdf_file_url: string;
+  requirement_short_requirements: {
+    short_requirements: {
+      name: string;
+    } | null;
+  }[];
 };
 
 interface SearchClientProps {
@@ -84,12 +97,14 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
     const countryQuery = searchParams.get('country');
     const cropQuery = searchParams.get('crop');
     if (countryQuery && cropQuery) {
+      setSelectedCountry(countryQuery);
+      setSelectedCrop(cropQuery);
       // We call handleSearch inside a useCallback to avoid re-creating it on every render
       // but we need to call it here with the initial values from the URL.
       // The dependency array ensures this only runs when the URL params change.
       handleSearch(countryQuery, cropQuery); 
     }
-  }, [searchParams, handleSearch, setSelectedCountry, setSelectedCrop]);
+  }, [searchParams, handleSearch]);
 
   const handleReset = () => {
     setSelectedCountry('');
