@@ -2,12 +2,13 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { PostgrestError } from '@supabase/supabase-js';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,15 +20,6 @@ type ComboboxOption = {
 };
 
 type ShortRequirement = { id: number; name: string };
-type RequirementData = {
-  country_id: number;
-  crop_id: number;
-  full_requirements: string | null;
-  publication_number: string | null;
-  publication_year: number | null;
-  pdf_file_url: string | null;
-  requirement_short_requirements: { short_requirement_id: number }[];
-};
 
 export default function EditRequirementPage() {
   const supabase = createClient();

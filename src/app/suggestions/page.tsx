@@ -1,26 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { PostgrestError } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { ArrowRight, User, Calendar, Target } from 'lucide-react';
 import { format } from 'date-fns-jalali';
-
-type Feedback = {
-  id: number;
-  comment_text: string;
-  created_at: string;
-  profiles: {
-    full_name_ar: string | null;
-    username_en: string;
-  } | null;
-  export_requirements: {
-    id: number;
-    countries: { id: number; name_ar: string } | null;
-    crops: { id: number; name_ar: string } | null;
-  } | null;
-};
 
 export default async function SuggestionsPage() {
   const supabase = createClient();
