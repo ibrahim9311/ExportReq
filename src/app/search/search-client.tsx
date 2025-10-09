@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Loader2, FileText, Calendar, Hash } from 'lucide-react';
 
-import { Combobox, ComboboxOption } from '@/components/ui/combobox';
+import { Combobox } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,11 @@ type RequirementResult = {
   }[];
 };
 
+type ComboboxOption = {
+  value: string;
+  label: string;
+};
+
 interface SearchClientProps {
     initialCountries: ComboboxOption[];
     initialCrops: ComboboxOption[];
@@ -35,8 +40,8 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
   const searchParams = useSearchParams();
 
   // Data lists
-  const [countries, setCountries] = useState<ComboboxOption[]>(initialCountries);
-  const [crops, setCrops] = useState<ComboboxOption[]>(initialCrops);
+  const [countries] = useState<ComboboxOption[]>(initialCountries);
+  const [crops] = useState<ComboboxOption[]>(initialCrops);
 
   // Form state
   const [selectedCountry, setSelectedCountry] = useState<string>('');
@@ -97,9 +102,12 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
     if (countryQuery && cropQuery) {
       setSelectedCountry(countryQuery);
       setSelectedCrop(cropQuery);
-      handleSearch(countryQuery, cropQuery);
+      // We call handleSearch inside a useCallback to avoid re-creating it on every render
+      // but we need to call it here with the initial values from the URL.
+      // The dependency array ensures this only runs when the URL params change.
+      handleSearch(countryQuery, cropQuery); 
     }
-  }, [searchParams, handleSearch]); // Run only when searchParams change
+  }, [searchParams, handleSearch]);
 
   const handleReset = () => {
     setSelectedCountry('');

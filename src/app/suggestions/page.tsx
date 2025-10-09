@@ -1,10 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { PostgrestError } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { ArrowRight, User, Calendar, Target } from 'lucide-react';
 import { format } from 'date-fns-jalali';
 
@@ -24,7 +23,6 @@ type Feedback = {
 };
 
 export default async function SuggestionsPage() {
-  const cookieStore = cookies();
   const supabase = createClient();
 
   // 1. Protect the route and check role
