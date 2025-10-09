@@ -1,33 +1,3 @@
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
-import SearchClient from './search-client';
-import { ComboboxOption } from '@/components/ui/combobox';
-
-async function getInitialData(supabase: any) {
-    const [
-        { data: countriesData },
-        { data: cropsData },
-    ] = await Promise.all([
-        supabase.from('countries').select('id, name_ar').order('name_ar'),
-        supabase.from('crops').select('id, name_ar').order('name_ar'),
-    ]);
-
-    const countries: ComboboxOption[] = countriesData?.map((c: any) => ({ value: c.id.toString(), label: c.name_ar })) || [];
-    const crops: ComboboxOption[] = cropsData?.map((c: any) => ({ value: c.id.toString(), label: c.name_ar })) || [];
-
-    return { countries, crops };
-}
-
-export default async function SearchPage() {
-    const cookieStore = cookies();
-    const supabase = createClient();
-
-    const { countries, crops } = await getInitialData(supabase);
-
-    return (
-        <SearchClient initialCountries={countries} initialCrops={crops} />
-    );
-}
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -60,14 +30,19 @@ type RequirementResult = {
   }[];
 };
 
-export default function SearchPage() {
+interface SearchClientProps {
+    initialCountries: ComboboxOption[];
+    initialCrops: ComboboxOption[];
+}
+
+export default function SearchClient({ initialCountries, initialCrops }: SearchClientProps) {
   const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Data lists
-  const [countries, setCountries] = useState<ComboboxOption[]>([]);
-  const [crops, setCrops] = useState<ComboboxOption[]>([]);
+  const [countries, setCountries] = useState<ComboboxOption[]>(initialCountries);
+  const [crops, setCrops] = useState<ComboboxOption[]>(initialCrops);
 
   // Form state
   const [selectedCountry, setSelectedCountry] = useState<string>('');
@@ -173,7 +148,7 @@ export default function SearchPage() {
         </Button>
       </div>
 
-      {initialCountries.length === 0 || initialCrops.length === 0 ? (
+      {countries.length === 0 || crops.length === 0 ? (
         <div className="text-center mt-8">جاري تحميل بيانات البحث...</div>
       ) : (
 
