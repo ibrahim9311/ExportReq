@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إضافة اشتراط جديد</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <style>
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background-color: #1e1e2f;
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h2 { margin: 0; }
+    .btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .logout-btn { background-color: #dc3545; }
+    .logout-btn:hover { background-color: #a71d2a; }
+    .container { padding: 20px; }
+    input, textarea, select, button {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button.save-btn {
+      background-color: #43a047;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button.save-btn:hover { background-color: #2e7d32; }
+    #message { color: green; font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>➕ إضافة اشتراط جديد</h2>
+    <div>
+      <button id="search-page" class="btn">🔍 صفحة البحث</button>
+      <button id="logout-btn" class="btn logout-btn">🚪 تسجيل الخروج</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <label>الدولة:</label>
+    <input list="country-list" id="country_name" placeholder="اختر أو اكتب اسم الدولة">
+    <datalist id="country-list"></datalist>
+
+    <label>المحصول:</label>
+    <input list="crop-list" id="crop_name" placeholder="اختر أو اكتب اسم المحصول">
+    <datalist id="crop-list"></datalist>
+
+    <label>الاشتراط المختصر (اختياري):</label>
+    <textarea id="short_summary" rows="2"></textarea>
+
+    <label>الاشتراط الكامل:</label>
+    <textarea id="full_requirements" rows="4"></textarea>
+
+    <label>رقم المنشور (اختياري):</label>
+    <input type="text" id="publication_number">
+
+    <label>سنة المنشور (اختياري):</label>
+    <input type="text" id="publication_year">
+
+    <button class="save-btn" id="save-btn">💾 حفظ الاشتراط</button>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://uulzslgyqygvtpfgeecr.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1bHpzbGd5cXlndnRwZmdlZWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NzM4ODEsImV4cCI6MjA3NTM0OTg4MX0.VLJ_R6aKKz39AvZphb0JGVspUpw--l2JNzrk5yuNwkQ";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // تحميل القوائم عند فتح الصفحة
+    window.addEventListener("DOMContentLoaded", async () => {
+      const { data: countries } = await supabase.from("countries").select("id, name");
+      const { data: crops } = await supabase.from("crops").select("id, name");
+
+      const countryList = document.getElementById("country-list");
+      const cropList = document.getElementById("crop-list");
+
+      countries?.forEach(c => {
+        const option = document.createElement("option");
+        option.value = c.name;
+        option.dataset.id = c.id;
+        countryList.appendChild(option);
+      });
+
+      crops?.forEach(c => {
+        const option = document.createElement("option");
+        option.value = c.name;
+        option.dataset.id = c.id;
+        cropList.appendChild(option);
+      });
+    });
+
+    document.getElementById("search-page").addEventListener("click", () => {
+      window.location.href = "search.html";
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      window.location.href = "login.html";
+    });
+
+    document.getElementById("save-btn").addEventListener("click", async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return alert("يجب تسجيل الدخول أولاً.");
+
+      const country_name = document.getElementById("country_name").value.trim();
+      const crop_name = document.getElementById("crop_name").value.trim();
+      const short_summary = document.getElementById("short_summary").value.trim();
+      const full_requirements = document.getElementById("full_requirements").value.trim();
+      const publication_number = document.getElementById("publication_number").value.trim();
+      const publication_year = document.getElementById("publication_year").value.trim();
+
+      if (!country_name || !crop_name || !full_requirements) {
+        return document.getElementById("message").textContent = "⚠️ يرجى إدخال البيانات الأساسية (الدولة - المحصول - الاشتراط الكامل)";
+      }
+
+      const { error } = await supabase.from("export_requirements").insert([
+        {
+          user_id: user.id,
+          country_name,
+          crop_name,
+          short_summary,
+          full_requirements,
+          publication_number,
+          publication_year
+        }
+      ]);
+
+      if (error) {
+        document.getElementById("message").textContent = "❌ حدث خطأ أثناء الحفظ.";
+      } else {
+        document.getElementById("message").textContent = "✅ تم حفظ الاشتراط بنجاح.";
+        document.querySelectorAll("input, textarea").forEach(el => el.value = "");
+      }
+    });
+  </script>
+</body>
+</html>
