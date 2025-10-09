@@ -25,6 +25,19 @@ import { ArrowRight, FileCheck, FileX, Edit } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 20;
 
+type PaginatedRequirement = {
+  id: number;
+  country_name_ar: string;
+  crop_name_ar: string;
+  short_requirements_agg: string | null;
+  publication_number: string | null;
+  publication_year: number | null;
+  pdf_file_url: string | null;
+  country_id: number;
+  crop_id: number;
+  total_count: number;
+};
+
 export default async function RequirementsListPage({
   searchParams,
 }: {
@@ -95,7 +108,7 @@ export default async function RequirementsListPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {requirements?.map((req) => (
+            {requirements?.map((req: PaginatedRequirement) => (
               <TableRow key={req.id!}>
                 <TableCell>{req.country_name_ar}</TableCell>
                 <TableCell>{req.crop_name_ar}</TableCell>
