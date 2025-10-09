@@ -148,10 +148,10 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
         </Button>
       </div>
 
-      {countries.length === 0 || crops.length === 0 ? (
+      {initialCountries.length === 0 || initialCrops.length === 0 ? (
         <div className="text-center mt-8">جاري تحميل بيانات البحث...</div>
       ) : (
-
+      <>
       <Card>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -222,6 +222,7 @@ export default function SearchClient({ initialCountries, initialCrops }: SearchC
           </CardContent>
         </Card>
       )}
+      </>
       )}
     </div>
   );

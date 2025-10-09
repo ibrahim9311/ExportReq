@@ -5,6 +5,17 @@ import { Toaster } from "@/components/ui/sonner"
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const metadata: Metadata = {
+  title: "My App",
+  description: "My App description",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
     <html lang="ar" dir="rtl">
       <body className={inter.className}>
         {children}
@@ -12,4 +23,5 @@ const inter = Inter({ subsets: ["latin"] });
       </body>
     </html>
   );
+}
 
