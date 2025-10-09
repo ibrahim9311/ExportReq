@@ -56,7 +56,7 @@ export default async function SuggestionsPage() {
         crops ( id, name_ar )
       )
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: Feedback[] | null, error: PostgrestError | null };
 
   if (error) {
     console.error("Error fetching feedback:", error);
