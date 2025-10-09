@@ -85,11 +85,11 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
         .single();
 
       if (data) {
-        // Fix: Map short_requirements to match expected type
+        // Fix: Remove 'any' usage for ESLint compliance
+        type SupabaseShortReq = { short_requirements: { name: string }[] | { name: string } | null };
         const fixedData: RequirementResult = {
           ...data,
-          requirement_short_requirements: (data.requirement_short_requirements || []).map((item: any) => {
-            // item.short_requirements is an array, but we want an object or null
+          requirement_short_requirements: (data.requirement_short_requirements || []).map((item: SupabaseShortReq) => {
             if (Array.isArray(item.short_requirements)) {
               const first = item.short_requirements[0];
               return {
