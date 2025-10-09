@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
-import { Combobox, ComboboxOption } from '@/components/ui/combobox';
+import { ComboboxOption } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
