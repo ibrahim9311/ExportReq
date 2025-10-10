@@ -14,11 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 
-type ComboboxOption = {
-  value: string;
-  label: string;
-};
-
 type ShortRequirement = { id: number; name: string };
 
 export default function EditRequirementPage() {

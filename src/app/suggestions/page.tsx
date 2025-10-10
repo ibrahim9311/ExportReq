@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { ArrowRight, User, Calendar, Target } from 'lucide-react';
 import { format } from 'date-fns-jalali';
 import { SuggestionsFilters } from './SuggestionsFilters';
