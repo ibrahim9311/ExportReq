@@ -28,6 +28,8 @@ const SignupPage = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Get reCAPTCHA site key from environment variables
+  // IMPORTANT: This implementation uses reCAPTCHA v2 Checkbox
+  // Make sure your keys are for v2 Checkbox type
   const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfOiuUrAAAAAGsNyqsNSb5PPXGiBKROd9PTnW6G';
 
   const calculatePasswordStrength = (password: string): number => {
@@ -358,7 +360,6 @@ const SignupPage = () => {
 
             </div>
             {errors.recaptcha && <p className="text-red-500 text-sm text-center">{errors.recaptcha}</p>}
-
             <div className="flex items-center space-x-2 space-x-reverse">
               <Checkbox
                 id="terms"
