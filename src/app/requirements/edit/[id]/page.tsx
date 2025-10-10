@@ -116,7 +116,7 @@ export default function EditRequirementPage() {
       p_crop_id: parseInt(selectedCrop),
       p_full_requirements: fullRequirements,
       p_publication_number: publicationNumber,
-      p_publication_year: publicationYear || null,
+      p_publication_year: publicationYear === '' ? null : publicationYear,
       p_pdf_file_url: newPdfUrl,
       p_short_req_ids: selectedShortReqs,
     });
@@ -205,7 +205,10 @@ export default function EditRequirementPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="pub-year">سنة النشر</Label>
-              <Input id="pub-year" type="number" value={publicationYear ?? ''} onChange={e => setPublicationYear(parseInt(e.target.value) || '')} />
+              <Input id="pub-year" type="number" value={publicationYear ?? ''} onChange={e => {
+                const value = e.target.value;
+                setPublicationYear(value === '' ? '' : parseInt(value, 10));
+              }} />
             </div>
             <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="pdf-file">تغيير/إضافة ملف المنشور (PDF)</Label>
