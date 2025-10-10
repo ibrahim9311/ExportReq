@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -13,17 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 type ShortRequirement = { id: number; name: string };
 
@@ -128,8 +117,9 @@ export default function EditRequirementPage() {
     toast.info("سيتم إزالة الملف عند الحفظ.");
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     setIsSubmitting(true);
+    e.preventDefault();
 
     let newPdfUrl = existingPdfUrl;
     let uploadedFilePath: string | null = null;
@@ -195,7 +185,7 @@ export default function EditRequirementPage() {
         </Button>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()}>
+      <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader><CardTitle>بيانات الاشتراط الأساسية</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -271,28 +261,10 @@ export default function EditRequirementPage() {
         </Card>
 
         <div className="mt-6 flex justify-end">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="lg" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : null}
-                حفظ التعديلات
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>تأكيد حفظ التعديلات</AlertDialogTitle>
-                <AlertDialogDescription>
-                  هل أنت متأكد من أنك تريد حفظ التغييرات التي قمت بها على هذا الاشتراط؟
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : "تأكيد الحفظ"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+            حفظ التعديلات
+          </Button>
         </div>
       </form>
     </div>
