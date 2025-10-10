@@ -101,7 +101,7 @@ export default function NewRequirementPage() {
         crop_id: parseInt(selectedCrop),
         full_requirements: fullRequirements,
         publication_number: publicationNumber,
-        publication_year: publicationYear || null,
+        publication_year: publicationYear === '' ? null : publicationYear,
         pdf_file_url: pdfUrl,
         // user_id will be set by RLS policy or a trigger if needed
       })
@@ -208,7 +208,10 @@ export default function NewRequirementPage() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="pub-year">سنة النشر</Label>
-              <Input id="pub-year" type="number" value={publicationYear} onChange={e => setPublicationYear(parseInt(e.target.value) || '')} />
+              <Input id="pub-year" type="number" value={publicationYear} onChange={e => {
+                const value = e.target.value;
+                setPublicationYear(value === '' ? '' : parseInt(value, 10));
+              }} />
             </div>
             <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="pdf-file">ملف المنشور (PDF)</Label>
