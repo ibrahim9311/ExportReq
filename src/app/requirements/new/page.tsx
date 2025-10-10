@@ -93,52 +93,33 @@ export default function NewRequirementPage() {
       pdfUrl = urlData.publicUrl;
     }
 
-    // 2. Insert the main requirement
-    const { data: newRequirement, error: insertError } = await supabase
-      .from('export_requirements')
-      .insert({
-        country_id: parseInt(selectedCountry),
-        crop_id: parseInt(selectedCrop),
-        full_requirements: fullRequirements,
-        publication_number: publicationNumber,
-        publication_year: publicationYear === '' ? null : publicationYear,
-        pdf_file_url: pdfUrl,
-        // user_id will be set by RLS policy or a trigger if needed
-      })
-      .select('id')
-      .single();
+    // 2. Call the RPC function to insert everything atomically
+    const { error: rpcError } = await supabase.rpc('create_requirement_with_shorts', {
+      p_country_id: parseInt(selectedCountry),
+      p_crop_id: parseInt(selectedCrop),
+      p_full_requirements: fullRequirements,
+      p_publication_number: publicationNumber,
+      p_publication_year: publicationYear === '' ? null : publicationYear,
+      p_pdf_file_url: pdfUrl,
+      p_short_req_ids: selectedShortReqs,
+    });
 
-    if (insertError) {
-      if (insertError.code === '23505') { // Unique constraint violation
+    if (rpcError) {
+      // Check for unique constraint violation from the underlying table
+      if (rpcError.message.includes('duplicate key value violates unique constraint "export_requirements_country_id_crop_id_key"')) {
         toast.error('فشل الحفظ: اشتراط مكرر', {
           description: 'يوجد بالفعل اشتراط مسجل لنفس الدولة والمحصول.',
         });
       } else {
-        toast.error('فشل حفظ الاشتراط', { description: insertError.message });
+        toast.error('فشل حفظ الاشتراط', { description: rpcError.message });
       }
       setIsSubmitting(false);
       return;
     }
 
-    // 3. Link short requirements
-    if (newRequirement && selectedShortReqs.length > 0) {
-      const links = selectedShortReqs.map(shortId => ({
-        requirement_id: newRequirement.id,
-        short_requirement_id: shortId,
-      }));
-      const { error: linkError } = await supabase
-        .from('requirement_short_requirements')
-        .insert(links);
-
-      if (linkError) {
-        toast.warning('تم حفظ الاشتراط ولكن فشل ربط الاشتراطات المختصرة.', {
-          description: linkError.message,
-        });
-      }
-    }
-
     toast.success('تم حفظ الاشتراط بنجاح!');
-    router.push('/dashboard'); // Or to the new requirement's page
+    router.push('/requirements'); // Navigate to the list page
+    router.refresh(); // Refresh server components on the new route
     setIsSubmitting(false);
   };
 

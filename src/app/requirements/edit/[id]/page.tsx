@@ -131,9 +131,7 @@ export default function EditRequirementPage() {
 
     // 2. Call the RPC function to update everything atomically
     const { error: rpcError } = await supabase.rpc('update_requirement_with_shorts', {
-      req_id: parseInt(requirementId),
-      p_country_id: parseInt(selectedCountry),
-      p_crop_id: parseInt(selectedCrop),
+      req_id: parseInt(requirementId),      
       p_full_requirements: fullRequirements,
       p_publication_number: publicationNumber,
       p_publication_year: publicationYear === '' ? null : publicationYear,

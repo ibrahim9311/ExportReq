@@ -73,7 +73,7 @@ export default function SignUpPage() {
           username_en: username,
         },
         // This is the URL the user will be redirected to after clicking the confirmation link
-        emailRedirectTo: `${location.origin}/auth/complete-registration`,
+        emailRedirectTo: `${location.origin}/auth/callback?next=/dashboard`,
       },
     });
 

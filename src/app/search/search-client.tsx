@@ -77,7 +77,7 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
           publication_year,
           pdf_file_url,
           requirement_short_requirements (
-            short_requirements ( name )
+            short_requirements!inner ( name )
           )
         `)
         .eq('country_id', finalCountryId)
