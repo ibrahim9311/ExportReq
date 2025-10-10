@@ -18,22 +18,35 @@ const HomePage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!credentials.emailOrUsername.trim() || !credentials.password.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ',
+        description: 'يرجى ملء جميع الحقول'
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Try to login with email
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.emailOrUsername,
+        email: credentials.emailOrUsername.trim(),
         password: credentials.password
       });
 
       if (error) {
-        // Show Arabic error message
+        console.error('Login error:', error);
+        
         let errorMessage = 'بيانات الدخول غير صحيحة';
-        if (error.message.includes('Invalid')) {
+        
+        if (error.message.includes('Invalid login credentials')) {
           errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
         } else if (error.message.includes('Email not confirmed')) {
           errorMessage = 'يرجى تأكيد بريدك الإلكتروني أولاً';
+        } else if (error.message.includes('Email link is invalid')) {
+          errorMessage = 'رابط البريد الإلكتروني غير صالح';
         }
 
         toast({
@@ -45,17 +58,31 @@ const HomePage = () => {
       }
 
       if (data.user) {
+        // Check if user has completed profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name_ar, role_id')
+          .eq('id', data.user.id)
+          .single();
+
         toast({
           title: 'تم تسجيل الدخول بنجاح',
           description: 'مرحباً بك في نظام إدارة اشتراطات التصدير'
         });
-        navigate('/dashboard');
+
+        // Redirect based on profile completion
+        if (profile && profile.full_name_ar) {
+          navigate('/dashboard');
+        } else {
+          navigate('/complete-profile');
+        }
       }
     } catch (error: any) {
+      console.error('Login exception:', error);
       toast({
         variant: 'destructive',
         title: 'خطأ',
-        description: 'حدث خطأ أثناء تسجيل الدخول'
+        description: error.message || 'حدث خطأ أثناء تسجيل الدخول'
       });
     } finally {
       setLoading(false);

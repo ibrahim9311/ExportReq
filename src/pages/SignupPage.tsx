@@ -81,11 +81,11 @@ const SignupPage = () => {
 
   const checkExistingUsername = async (): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('username_en')
-        .eq('username_en', formData.username)
-        .maybeSingle();
+      const { data, error } = await supabase.
+      from('profiles').
+      select('username_en').
+      eq('username_en', formData.username).
+      maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking username:', error);
@@ -133,17 +133,19 @@ const SignupPage = () => {
 
       // Proceed with signup
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password,
         options: {
           data: {
-            username_en: formData.username
+            username_en: formData.username.trim()
           },
-          emailRedirectTo: `${window.location.origin}/complete-profile`
+          emailRedirectTo: `${window.location.origin}/onauthsuccess`
         }
       });
 
       if (error) {
+        console.error('Signup error:', error);
+        
         // Handle specific error cases
         if (error.message.includes('already registered') || error.message.includes('User already registered')) {
           toast({
@@ -158,19 +160,21 @@ const SignupPage = () => {
       }
 
       if (data.user) {
-        // Create profile entry
+        // Create profile entry with minimal info
         const { error: profileError } = await supabase
           .from('profiles')
           .insert([{
             id: data.user.id,
-            username_en: formData.username,
-            is_active: true,
+            username_en: formData.username.trim(),
+            email: formData.email.trim(),
+            role_id: 1,
+            is_active: false,
             created_at: new Date().toISOString()
           }]);
 
         if (profileError) {
           console.error('Error creating profile:', profileError);
-          // Don't fail the signup if profile creation fails
+          // Continue anyway as profile will be created on email confirmation
         }
 
         toast({

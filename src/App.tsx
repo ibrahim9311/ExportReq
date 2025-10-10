@@ -13,6 +13,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
 import AddRequirementPage from "./pages/AddRequirementPage";
 import ViewRequirementsPage from "./pages/ViewRequirementsPage";
+import AuthSuccessPage from "./pages/AuthSuccessPage";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "./components/error-fallback";
 
@@ -36,7 +37,10 @@ const App = () =>
             <Route path="/" element={<HomePage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/onauthsuccess" element={<AuthSuccessPage />} />
+            <Route path="/complete-profile" element={<CompleteProfilePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/policies" element={<PoliciesPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/add-requirement" element={<AddRequirementPage />} />
