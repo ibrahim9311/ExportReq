@@ -7,7 +7,8 @@ import { ComboboxOption } from '@/components/ui/combobox';
 type Country = { id: number; name_ar: string };
 type Crop = { id: number; name_ar: string };
 
-const getCachedInitialData = cache(async (supabase: SupabaseClient) => {
+const getCachedInitialData = cache(async () => {
+    const supabase = createClient();
     const [
         { data: countriesData },
         { data: cropsData },
@@ -23,9 +24,7 @@ const getCachedInitialData = cache(async (supabase: SupabaseClient) => {
 }, ['search-initial-data'], { revalidate: 3600 }); // Cache for 1 hour
 
 export default async function SearchPage() {
-    const supabase = createClient();
-
-    const { countries, crops } = await getCachedInitialData(supabase);
+    const { countries, crops } = await getCachedInitialData();
 
     return (
         <SearchClient initialCountries={countries} initialCrops={crops} />

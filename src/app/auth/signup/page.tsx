@@ -63,6 +63,10 @@ export default function SignUpPage() {
       setLoading(false);
       return;
     }
+    if (profileError && profileError.code !== 'PGRST116') { // Ignore 'exact one row' error
+        // Log the error for debugging, but don't block the user
+        console.error("Error checking for existing username:", profileError.message);
+    }
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -89,8 +93,8 @@ export default function SignUpPage() {
           description: "تم إرسال رابط التفعيل إلى بريدك الإلكتروني. الرجاء التحقق من بريدك لإكمال التسجيل.",
           duration: 5000,
         })
-        // Redirect immediately to the login page with a message, prompting the user to log in after verification.
-        router.push('/login?message=registration_successful');
+        // Redirect to a page that informs the user to check their email
+        router.push('/auth/check-email');
     }
 
     setLoading(false);

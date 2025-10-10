@@ -63,7 +63,7 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
     router.push(`${pathname}${query}`, { scroll: false });
 
     setSearching(true);
-    setSearchResult(null);
+    setSearchResult(null); // Clear previous results immediately
 
     try {
       const { data } = await supabase
@@ -89,7 +89,8 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
       }
     } catch (error) {
       console.error("Search error:", error);
-      setSearchResult('not_found'); // Or handle error state differently
+      // Let the user know something went wrong
+      toast.error("حدث خطأ أثناء البحث", { description: "الرجاء المحاولة مرة أخرى." });
     }
     setSearching(false);
   }, [selectedCountry, selectedCrop, supabase, searchParams, router, pathname]);

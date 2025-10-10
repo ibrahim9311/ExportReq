@@ -37,8 +37,8 @@ type RequirementData = {
   pdf_file_url: string | null;
   requirement_short_requirements: { short_requirement_id: number }[];
   // Supabase can return a single object or an array for relations
-  countries: { name_ar: string };
-  crops: { name_ar: string };
+  countries: { name_ar: string } | { name_ar: string }[];
+  crops: { name_ar: string } | { name_ar: string }[];
 };
 
 
@@ -60,7 +60,6 @@ export default function EditRequirementPage() {
   const [publicationYear, setPublicationYear] = useState<number | ''>('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [existingPdfUrl, setExistingPdfUrl] = useState<string | null>(null);
-
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -94,9 +93,11 @@ export default function EditRequirementPage() {
         setExistingPdfUrl(requirementData.pdf_file_url);
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
         
-        // Simplified type-safe access
-        setCountryName(requirementData.countries.name_ar || '');
-        setCropName(requirementData.crops.name_ar || '');
+        // Type-safe access to related data
+        const country = Array.isArray(requirementData.countries) ? requirementData.countries[0] : requirementData.countries;
+        const crop = Array.isArray(requirementData.crops) ? requirementData.crops[0] : requirementData.crops;
+        setCountryName(country?.name_ar || '');
+        setCropName(crop?.name_ar || '');
       } else if (error) {
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
@@ -147,7 +148,7 @@ export default function EditRequirementPage() {
       }
       const { data: urlData } = supabase.storage.from('requirements-files').getPublicUrl(filePath);
       newPdfUrl = urlData.publicUrl;
-      uploadedFilePath = filePath; // Keep track of the uploaded file path
+      uploadedFilePath = filePath;
     }
 
     // 2. Call the RPC function to update everything atomically
@@ -241,7 +242,6 @@ export default function EditRequirementPage() {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>بيانات المنشور (اختياري)</CardTitle>
-            <CardDescription>يمكنك إضافة هذه البيانات الآن أو تعديلها لاحقاً.</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="grid gap-2">
