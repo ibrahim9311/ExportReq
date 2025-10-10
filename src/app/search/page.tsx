@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { unstable_cache as cache } from 'next/cache';
 import SearchClient from './search-client';
 import { ComboboxOption } from '@/components/ui/combobox';
