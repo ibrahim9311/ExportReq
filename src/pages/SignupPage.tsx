@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 
@@ -46,6 +45,8 @@ const SignupPage = () => {
       newErrors.username = 'اسم المستخدم مطلوب';
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
       newErrors.username = 'اسم المستخدم يجب أن يحتوي على أحرف إنجليزية وأرقام فقط';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل';
     }
 
     if (!formData.email.trim()) {
@@ -60,8 +61,10 @@ const SignupPage = () => {
 
     if (!formData.password) {
       newErrors.password = 'كلمة المرور مطلوبة';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
     } else if (passwordStrength < 50) {
-      newErrors.password = 'كلمة المرور ضعيفة جداً';
+      newErrors.password = 'كلمة المرور ضعيفة جداً. استخدم أحرف كبيرة وصغيرة وأرقام ورموز';
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -76,40 +79,28 @@ const SignupPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const checkExistingUser = async (): Promise<boolean> => {
+  const checkExistingUsername = async (): Promise<boolean> => {
     try {
-      const { data: existingUsername } = await supabase.
-      from('profiles').
-      select('username_en').
-      eq('username_en', formData.username).
-      single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username_en')
+        .eq('username_en', formData.username)
+        .maybeSingle();
 
-      if (existingUsername) {
-        setErrors((prev) => ({ ...prev, username: 'اسم المستخدم مستخدم بالفعل' }));
-        return false;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking username:', error);
+        return true; // Allow signup to proceed, auth will handle conflicts
       }
 
-      const { data: existingEmail } = await supabase.
-      from('profiles').
-      select('email').
-      eq('email', formData.email).
-      single();
-
-      if (existingEmail) {
-        toast({
-          variant: 'destructive',
-          title: 'هذا البريد مسجل بالفعل',
-          description: 'يمكنك تسجيل الدخول باستخدام حسابك الحالي'
-        });
-        setTimeout(() => navigate('/'), 2000);
+      if (data) {
+        setErrors((prev) => ({ ...prev, username: 'اسم المستخدم مستخدم بالفعل' }));
         return false;
       }
 
       return true;
     } catch (error: any) {
-      if (error.code === 'PGRST116') return true;
-      console.error('Error checking existing user:', error);
-      return true;
+      console.error('Error checking existing username:', error);
+      return true; // Allow signup to proceed
     }
   };
 
@@ -128,12 +119,19 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const userExists = await checkExistingUser();
-      if (!userExists) {
+      // Check if username exists in profiles table
+      const usernameAvailable = await checkExistingUsername();
+      if (!usernameAvailable) {
         setLoading(false);
+        toast({
+          variant: 'destructive',
+          title: 'اسم المستخدم مستخدم',
+          description: 'الرجاء اختيار اسم مستخدم آخر'
+        });
         return;
       }
 
+      // Proceed with signup
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -145,21 +143,59 @@ const SignupPage = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific error cases
+        if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+          toast({
+            variant: 'destructive',
+            title: 'هذا البريد مسجل بالفعل',
+            description: 'يمكنك تسجيل الدخول باستخدام حسابك الحالي'
+          });
+          setTimeout(() => navigate('/'), 2000);
+          return;
+        }
+        throw error;
+      }
 
       if (data.user) {
+        // Create profile entry
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: data.user.id,
+            username_en: formData.username,
+            is_active: true,
+            created_at: new Date().toISOString()
+          }]);
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          // Don't fail the signup if profile creation fails
+        }
+
         toast({
-          title: 'تم إنشاء الحساب',
+          title: 'تم إنشاء الحساب بنجاح',
           description: 'الرجاء التحقق من بريدك الإلكتروني لتفعيل الحساب'
         });
+
+        // Clear form
+        setFormData({
+          username: '',
+          email: '',
+          confirmEmail: '',
+          password: '',
+          confirmPassword: ''
+        });
+        setTermsAgreed(false);
 
         setTimeout(() => navigate('/'), 2000);
       }
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         variant: 'destructive',
         title: 'خطأ في إنشاء الحساب',
-        description: error.message || 'حدث خطأ أثناء إنشاء الحساب'
+        description: error.message || 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى'
       });
     } finally {
       setLoading(false);
@@ -202,7 +238,8 @@ const SignupPage = () => {
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 className="text-right"
-                placeholder="username_en" />
+                placeholder="username_en"
+                disabled={loading} />
 
               {errors.username && <p className="text-red-500 text-sm mt-1 text-right">{errors.username}</p>}
             </div>
@@ -216,7 +253,8 @@ const SignupPage = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="text-right"
-                placeholder="example@domain.com" />
+                placeholder="example@domain.com"
+                disabled={loading} />
 
               {errors.email && <p className="text-red-500 text-sm mt-1 text-right">{errors.email}</p>}
             </div>
@@ -230,7 +268,8 @@ const SignupPage = () => {
                 value={formData.confirmEmail}
                 onChange={(e) => setFormData({ ...formData, confirmEmail: e.target.value })}
                 className="text-right"
-                placeholder="example@domain.com" />
+                placeholder="example@domain.com"
+                disabled={loading} />
 
               {errors.confirmEmail && <p className="text-red-500 text-sm mt-1 text-right">{errors.confirmEmail}</p>}
             </div>
@@ -244,7 +283,8 @@ const SignupPage = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="text-right"
-                placeholder="••••••••" />
+                placeholder="••••••••"
+                disabled={loading} />
 
               {formData.password &&
               <div className="mt-2">
@@ -271,7 +311,8 @@ const SignupPage = () => {
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 className="text-right"
-                placeholder="••••••••" />
+                placeholder="••••••••"
+                disabled={loading} />
 
               {errors.confirmPassword && <p className="text-red-500 text-sm mt-1 text-right">{errors.confirmPassword}</p>}
             </div>
@@ -280,7 +321,8 @@ const SignupPage = () => {
               <Checkbox
                 id="terms"
                 checked={termsAgreed}
-                onCheckedChange={(checked) => setTermsAgreed(checked as boolean)} />
+                onCheckedChange={(checked) => setTermsAgreed(checked as boolean)}
+                disabled={loading} />
 
               <Label htmlFor="terms" className="text-sm cursor-pointer">
                 أوافق على{' '}
