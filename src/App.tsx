@@ -15,6 +15,9 @@ import AddRequirementPage from "./pages/AddRequirementPage";
 import ViewRequirementsPage from "./pages/ViewRequirementsPage";
 import AuthSuccessPage from "./pages/AuthSuccessPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import EditRequirementsPage from "./pages/EditRequirementsPage";
+import SuggestionsPage from "./pages/SuggestionsPage";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "./components/error-fallback";
 
@@ -47,6 +50,9 @@ const App = () =>
             <Route path="/search" element={<SearchPage />} />
             <Route path="/add-requirement" element={<AddRequirementPage />} />
             <Route path="/view-requirements" element={<ViewRequirementsPage />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/edit-requirements" element={<EditRequirementsPage />} />
+            <Route path="/suggestions" element={<SuggestionsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

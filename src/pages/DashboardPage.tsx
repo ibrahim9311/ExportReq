@@ -178,7 +178,7 @@ const DashboardPage = () => {
   },
   {
     label: 'إدارة المستخدمين',
-    path: '/manage-users',
+    path: '/admin/users',
     icon: <Users className="w-6 h-6" />,
     roles: [4, 5]
   }];
