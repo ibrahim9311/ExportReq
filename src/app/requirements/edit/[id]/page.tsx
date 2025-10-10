@@ -16,6 +16,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 type ShortRequirement = { id: number; name: string };
 
+// Define a more specific type for the fetched data
+type RequirementData = {
+  country_id: number;
+  crop_id: number;
+  full_requirements: string | null;
+  publication_number: string | null;
+  publication_year: number | null;
+  pdf_file_url: string | null;
+  requirement_short_requirements: { short_requirement_id: number }[];
+  // Supabase can return a single object or an array for relations
+  countries: { name_ar: string } | { name_ar: string }[];
+  crops: { name_ar: string } | { name_ar: string }[];
+};
+
+
 export default function EditRequirementPage() {
   const supabase = createClient();
   const router = useRouter();
@@ -48,7 +63,7 @@ export default function EditRequirementPage() {
       const { data: shortReqsData } = await supabase.from('short_requirements').select('id, name').order('name');
       if (shortReqsData) setShortRequirements(shortReqsData);
 
-      const { data: requirementData, error: reqError } = await supabase
+      const { data, error } = await supabase
           .from('export_requirements')
           .select(`
               country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url, 
@@ -59,6 +74,7 @@ export default function EditRequirementPage() {
           .eq('id', requirementId)
           .single();
 
+      const requirementData = data as RequirementData | null;
 
       // Populate form with existing data
       if (requirementData) {
@@ -69,8 +85,13 @@ export default function EditRequirementPage() {
         setPublicationYear(requirementData.publication_year || '');
         setExistingPdfUrl(requirementData.pdf_file_url);
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
-        setCountryName((requirementData.countries as any)?.[0]?.name_ar || (requirementData.countries as any)?.name_ar || '');
-        setCropName((requirementData.crops as any)?.[0]?.name_ar || (requirementData.crops as any)?.name_ar || '');
+        
+        // Type-safe access to related data
+        const country = Array.isArray(requirementData.countries) ? requirementData.countries[0] : requirementData.countries;
+        const crop = Array.isArray(requirementData.crops) ? requirementData.crops[0] : requirementData.crops;
+        setCountryName(country?.name_ar || '');
+        setCropName(crop?.name_ar || '');
+      } else if (error) {
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
       }
