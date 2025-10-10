@@ -249,8 +249,8 @@ const SearchPage = () => {
           <Button
             onClick={() => navigate('/')}
             variant="outline"
-            className="gap-2 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors"
-          >
+            className="gap-2 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors">
+
             <Home className="w-4 h-4" />
             العودة إلى القائمة الرئيسية
           </Button>
