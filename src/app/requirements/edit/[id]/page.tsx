@@ -28,8 +28,8 @@ export default function EditRequirementPage() {
   const requirementId = params.id as string;
 
   // Data lists
-  const [countries, setCountries] = useState<ComboboxOption[]>([]);
-  const [crops, setCrops] = useState<ComboboxOption[]>([]);
+  const [countryName, setCountryName] = useState('');
+  const [cropName, setCropName] = useState('');
   const [shortRequirements, setShortRequirements] = useState<ShortRequirement[]>([]);
 
   // Form state
@@ -50,25 +50,20 @@ export default function EditRequirementPage() {
     const fetchData = async () => {
       setLoading(true);
       // Fetch lists and existing requirement data in parallel
-      const [
-        { data: countriesData },
-        { data: cropsData },
-        { data: shortReqsData },
-        { data: requirementData, error: reqError },
-      ] = await Promise.all([
-        supabase.from('countries').select('id, name_ar').order('name_ar'),
-        supabase.from('crops').select('id, name_ar').order('name_ar'),
-        supabase.from('short_requirements').select('id, name').order('name'),
-        supabase.from('export_requirements').select(`
-            country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url,
-            requirement_short_requirements(short_requirement_id)
-        `).eq('id', requirementId).single(),
-      ]);
-
-      // Populate lists
-      if (countriesData) setCountries(countriesData.map(c => ({ value: c.id.toString(), label: c.name_ar })));
-      if (cropsData) setCrops(cropsData.map(c => ({ value: c.id.toString(), label: c.name_ar })));
+      const { data: shortReqsData } = await supabase.from('short_requirements').select('id, name').order('name');
       if (shortReqsData) setShortRequirements(shortReqsData);
+
+      const { data: requirementData, error: reqError } = await supabase
+          .from('export_requirements')
+          .select(`
+              country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url,
+              requirement_short_requirements(short_requirement_id),
+              countries ( name_ar ),
+              crops ( name_ar )
+          `)
+          .eq('id', requirementId)
+          .single();
+
 
       // Populate form with existing data
       if (requirementData) {
@@ -79,6 +74,8 @@ export default function EditRequirementPage() {
         setPublicationYear(requirementData.publication_year || '');
         setExistingPdfUrl(requirementData.pdf_file_url);
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
+        setCountryName(requirementData.countries?.name_ar || '');
+        setCropName(requirementData.crops?.name_ar || '');
       } else if (reqError) {
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
@@ -163,11 +160,11 @@ export default function EditRequirementPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="grid gap-2">
               <Label>الدولة</Label>
-              <Input value={countries.find(c => c.value === selectedCountry)?.label || ''} readOnly disabled />
+              <Input value={countryName} readOnly disabled />
             </div>
             <div className="grid gap-2">
               <Label>المحصول</Label>
-              <Input value={crops.find(c => c.value === selectedCrop)?.label || ''} readOnly disabled />
+              <Input value={cropName} readOnly disabled />
             </div>
           </CardContent>
         </Card>

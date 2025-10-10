@@ -2,11 +2,20 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { ArrowRight, User, Calendar, Target } from 'lucide-react';
 import { format } from 'date-fns-jalali';
+import { SuggestionsFilters } from './SuggestionsFilters';
 
-export default async function SuggestionsPage() {
+type PageProps = {
+  searchParams: {
+    country?: string;
+    crop?: string;
+    sortBy?: string;
+  };
+};
+
+export default async function SuggestionsPage({ searchParams }: PageProps) {
   const supabase = createClient();
 
   // 1. Protect the route and check role
@@ -26,8 +35,23 @@ export default async function SuggestionsPage() {
     redirect('/dashboard');
   }
 
-  // 2. Fetch feedback data
-  const { data: feedbacks, error } = await supabase
+  // 2. Fetch data for filters
+  const [
+    { data: countriesData },
+    { data: cropsData },
+  ] = await Promise.all([
+    supabase.from('countries').select('id, name_ar').order('name_ar'),
+    supabase.from('crops').select('id, name_ar').order('name_ar'),
+  ]);
+
+  const countries = countriesData?.map(c => ({ value: c.id.toString(), label: c.name_ar })) || [];
+  const crops = cropsData?.map(c => ({ value: c.id.toString(), label: c.name_ar })) || [];
+
+  // 3. Build and execute the main query with filters and sorting
+  const { country, crop, sortBy } = searchParams;
+  const [sortColumn, sortOrder] = sortBy?.split('.') || ['created_at', 'desc'];
+
+  let query = supabase
     .from('feedback')
     .select(`
       id,
@@ -40,11 +64,21 @@ export default async function SuggestionsPage() {
         crops ( id, name_ar )
       )
     `)
-    .order('created_at', { ascending: false });
+    .order(sortColumn, { ascending: sortOrder === 'asc' });
+
+  // Apply filters. Note: Supabase requires a foreign table for this syntax.
+  // The filter is applied on the `export_requirements` table through the `feedback` table.
+  if (country) {
+    query = query.eq('export_requirements.country_id', country);
+  }
+  if (crop) {
+    query = query.eq('export_requirements.crop_id', crop);
+  }
+
+  const { data: feedbacks, error } = await query;
 
   if (error) {
     console.error("Error fetching feedback:", error);
-    // Optionally show an error message
   }
 
   return (
@@ -59,25 +93,27 @@ export default async function SuggestionsPage() {
         </Button>
       </div>
 
+      <SuggestionsFilters countries={countries} crops={crops} />
+
       <div className="grid gap-6">
         {feedbacks && feedbacks.length > 0 ? (
           feedbacks.map(fb => (
             <Card key={fb.id}>
               <CardHeader>
-                <CardDescription className="flex justify-between items-center text-xs">
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <User size={14} />
                     {fb.profiles?.[0]?.full_name_ar || fb.profiles?.[0]?.username_en}
                   </span>
                   <span className="flex items-center gap-1"><Calendar size={14} /> {format(new Date(fb.created_at), 'yyyy/MM/dd - HH:mm')}</span>
-                </CardDescription>
+                </div>
               </CardHeader>
               <CardContent>
                 <p className="whitespace-pre-wrap">{fb.comment_text}</p>
               </CardContent>
               <CardFooter className="bg-muted/50 p-3 text-sm">
-                <Link href={`/search?country=${fb.export_requirements?.countries?.id}&crop=${fb.export_requirements?.crops?.id}`} className="flex items-center gap-1 hover:underline">
-                  <Target size={14} /> ملاحظة على اشتراط: {fb.export_requirements?.countries?.name_ar} - {fb.export_requirements?.crops?.name_ar}
+                <Link href={`/search?country=${fb.export_requirements?.countries?.[0]?.id}&crop=${fb.export_requirements?.crops?.[0]?.id}`} className="flex items-center gap-1 hover:underline">
+                  <Target size={14} /> ملاحظة على اشتراط: {fb.export_requirements?.countries?.[0]?.name_ar} - {fb.export_requirements?.crops?.[0]?.name_ar}
                 </Link>
               </CardFooter>
             </Card>

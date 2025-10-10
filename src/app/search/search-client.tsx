@@ -85,27 +85,7 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
         .single();
 
       if (data) {
-        // Fix: Remove 'any' usage for ESLint compliance
-        type SupabaseShortReq = { short_requirements: { name: string }[] | { name: string } | null };
-        const fixedData: RequirementResult = {
-          ...data,
-          requirement_short_requirements: (data.requirement_short_requirements || []).map((item: SupabaseShortReq) => {
-            if (Array.isArray(item.short_requirements)) {
-              const first = item.short_requirements[0];
-              return {
-                short_requirements: first && typeof first.name === "string"
-                  ? { name: first.name }
-                  : null,
-              };
-            }
-            return {
-              short_requirements: item.short_requirements && typeof item.short_requirements.name === "string"
-                ? { name: item.short_requirements.name }
-                : null,
-            };
-          }),
-        };
-        setSearchResult(fixedData);
+        setSearchResult(data as RequirementResult);
       } else {
         setSearchResult('not_found');
       }
