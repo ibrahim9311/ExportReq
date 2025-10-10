@@ -51,10 +51,10 @@ export default function EditRequirementPage() {
       const { data: requirementData, error: reqError } = await supabase
           .from('export_requirements')
           .select(`
-              country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url,
-              requirement_short_requirements(short_requirement_id),
-              countries ( name_ar ),
-              crops ( name_ar )
+              country_id, crop_id, full_requirements, publication_number, publication_year, pdf_file_url, 
+              requirement_short_requirements(short_requirement_id), 
+              countries!inner ( name_ar ), 
+              crops!inner ( name_ar )
           `)
           .eq('id', requirementId)
           .single();
@@ -69,8 +69,8 @@ export default function EditRequirementPage() {
         setPublicationYear(requirementData.publication_year || '');
         setExistingPdfUrl(requirementData.pdf_file_url);
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
-        setCountryName((requirementData.countries as any)?.name_ar || '');
-        setCropName((requirementData.crops as any)?.name_ar || '');
+        setCountryName(requirementData.countries.name_ar || '');
+        setCropName(requirementData.crops.name_ar || '');
       } else if (reqError) {
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
