@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight } from 'lucide-react';
 
-const SearchPage = () => {
+const AddRequirementPage = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" dir="rtl">
       <Card className="max-w-md w-full p-8 text-center">
-        <h1 className="text-3xl font-bold text-indigo-900 mb-4">البحث عن الاشتراطات</h1>
+        <h1 className="text-3xl font-bold text-indigo-900 mb-4">تسجيل اشتراط جديد</h1>
         <p className="text-6xl mb-6">⏳</p>
         <p className="text-xl text-gray-600 mb-8">قريباً</p>
         <Button onClick={() => navigate('/dashboard')} className="gap-2">
@@ -21,4 +21,4 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default AddRequirementPage;

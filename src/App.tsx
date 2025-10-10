@@ -3,10 +3,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import Dashboard from "./pages/Dashboard";
-import SearchPage from "./pages/SearchPage";
-import RegisterRequirement from "./pages/RegisterRequirement";
 import NotFound from "./pages/NotFound";
+import SignupPage from "./pages/SignupPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import DashboardPage from "./pages/DashboardPage";
+import PoliciesPage from "./pages/PoliciesPage";
+import CompleteProfilePage from "./pages/CompleteProfilePage";
+import ProfilePage from "./pages/ProfilePage";
+import SearchPage from "./pages/SearchPage";
+import AddRequirementPage from "./pages/AddRequirementPage";
+import ViewRequirementsPage from "./pages/ViewRequirementsPage";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "./components/error-fallback";
 
@@ -28,9 +34,13 @@ const App = () =>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/register-requirement" element={<RegisterRequirement />} />
+            <Route path="/add-requirement" element={<AddRequirementPage />} />
+            <Route path="/view-requirements" element={<ViewRequirementsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

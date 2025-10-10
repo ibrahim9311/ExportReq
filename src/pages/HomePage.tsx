@@ -1,260 +1,271 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Lock, Mail, User, ArrowLeft } from "lucide-react";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [credentials, setCredentials] = useState({
+    emailOrUsername: '',
+    password: ''
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (!username || !password) {
-      toast({
-        title: "خطأ",
-        description: "يرجى إدخال اسم المستخدم وكلمة المرور",
-        variant: "destructive"
+    try {
+      // Try to login with email
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.emailOrUsername,
+        password: credentials.password,
       });
-      return;
+
+      if (error) {
+        // Show Arabic error message
+        let errorMessage = 'بيانات الدخول غير صحيحة';
+        if (error.message.includes('Invalid')) {
+          errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'يرجى تأكيد بريدك الإلكتروني أولاً';
+        }
+        
+        toast({
+          variant: 'destructive',
+          title: 'خطأ في تسجيل الدخول',
+          description: errorMessage
+        });
+        return;
+      }
+
+      if (data.user) {
+        toast({
+          title: 'تم تسجيل الدخول بنجاح',
+          description: 'مرحباً بك في نظام إدارة اشتراطات التصدير'
+        });
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تسجيل الدخول'
+      });
+    } finally {
+      setLoading(false);
     }
-
-    setIsLoading(true);
-
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في لوحة التحكم"
-      });
-      navigate("/dashboard");
-    }, 1500);
   };
 
   return (
-    <div dir="rtl" className="min-h-screen relative overflow-hidden bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900" style={{ fontFamily: "'Cairo', sans-serif" }}>
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }} />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50" dir="rtl">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-3"
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">E</span>
+              </div>
+              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                ExportReq - نظام إدارة اشتراطات التصدير
+              </h1>
+            </motion.div>
+          </div>
+        </div>
+      </header>
 
-        <motion.div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          animate={{
-            scale: [1, 1.3, 1],
-            rotate: [0, -90, 0]
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }} />
-
-        <motion.div
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20"
-          animate={{
-            scale: [1, 1.4, 1]
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }} />
-
-      </div>
-
-      {/* Main content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="w-full max-w-md">
-
-          {/* Logo and welcome section */}
+      {/* Hero Section */}
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          {/* Left Side - Hero Content */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-center mb-8">
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center md:text-right space-y-6"
+          >
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight"
+            >
+              مرحباً بك في
+              <span className="block bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mt-2">
+                نظام إدارة اشتراطات التصدير
+              </span>
+            </motion.h2>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-lg md:text-xl text-gray-600 leading-relaxed"
+            >
+              نظام متكامل لإدارة وتتبع اشتراطات التصدير بكل سهولة وكفاءة
+            </motion.p>
 
-            <motion.div
-              className="inline-block mb-4"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}>
-
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-purple-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-2xl">
-                <Lock className="w-10 h-10 text-white" />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-wrap gap-4 justify-center md:justify-end"
+            >
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <span className="text-indigo-600">✓</span>
+                </div>
+                <span>إدارة فعالة</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600">✓</span>
+                </div>
+                <span>تتبع دقيق</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                  <span className="text-pink-600">✓</span>
+                </div>
+                <span>أمان عالي</span>
               </div>
             </motion.div>
-            
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-4xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">
-
-              مرحباً بك
-            </motion.h1>
-            
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-lg text-purple-200">
-
-              سجّل الدخول للوصول إلى حسابك
-            </motion.p>
           </motion.div>
 
-          {/* Login card */}
+          {/* Right Side - Login Form */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <div className="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-sm border border-gray-100">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">تسجيل الدخول</h3>
+                <p className="text-gray-600">أدخل بياناتك للوصول إلى حسابك</p>
+              </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
-              {/* Username/Email field */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 }}
-                className="space-y-2">
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div>
+                  <Label htmlFor="emailOrUsername" className="text-right block mb-2">
+                    البريد الإلكتروني أو اسم المستخدم
+                  </Label>
+                  <Input
+                    id="emailOrUsername"
+                    type="text"
+                    required
+                    value={credentials.emailOrUsername}
+                    onChange={(e) => setCredentials({ ...credentials, emailOrUsername: e.target.value })}
+                    className="text-right"
+                    placeholder="أدخل البريد الإلكتروني"
+                  />
+                </div>
 
-                <Label htmlFor="username" className="text-white text-lg font-semibold flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  اسم المستخدم أو البريد الإلكتروني
-                </Label>
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-500 h-12 text-lg rounded-xl focus:ring-2 focus:ring-purple-400 transition-all"
-                  placeholder="أدخل اسم المستخدم أو البريد"
-                  dir="rtl" />
+                <div>
+                  <Label htmlFor="password" className="text-right block mb-2">
+                    كلمة المرور
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={credentials.password}
+                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                    className="text-right"
+                    placeholder="أدخل كلمة المرور"
+                  />
+                </div>
 
-              </motion.div>
-
-              {/* Password field */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.7 }}
-                className="space-y-2">
-
-                <Label htmlFor="password" className="text-white text-lg font-semibold flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  كلمة المرور
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-500 h-12 text-lg rounded-xl focus:ring-2 focus:ring-purple-400 transition-all"
-                  placeholder="أدخل كلمة المرور"
-                  dir="rtl" />
-
-              </motion.div>
-
-              {/* Forgot password link */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="text-left">
-
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
-                  className="text-purple-200 hover:text-white transition-colors text-sm font-medium underline underline-offset-2">
-
-                  هل نسيت كلمة المرور؟
-                </button>
-              </motion.div>
-
-              {/* Login button */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}>
+                <div className="text-left">
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
+                  >
+                    نسيت كلمة السر؟
+                  </Link>
+                </div>
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
-
-                  {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg py-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                  disabled={loading}
+                >
+                  {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                 </Button>
-              </motion.div>
+              </form>
 
-              {/* Divider */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="relative">
-
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/20"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-transparent text-purple-200">أو</span>
-                </div>
-              </motion.div>
-
-              {/* Register button */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.1 }}>
-
-                <Button
-                  type="button"
-                  onClick={() => navigate("/register")}
-                  variant="outline"
-                  className="w-full h-12 text-lg font-bold bg-white/10 hover:bg-white/20 text-white border-2 border-white/30 rounded-xl transition-all duration-300 transform hover:scale-[1.02] bg-white text-[#e9d5ff]">
-
-                  إنشاء حساب جديد
-                </Button>
-              </motion.div>
-            </form>
+              <div className="mt-6 text-center">
+                <p className="text-gray-600 mb-4">ليس لديك حساب؟</p>
+                <Link to="/signup">
+                  <Button
+                    variant="outline"
+                    className="w-full border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50"
+                  >
+                    إنشاء حساب جديد
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </motion.div>
+        </div>
 
-          {/* Footer text */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="text-center mt-8">
-
-            <p className="text-purple-200 text-sm">
-              جميع الحقوق محفوظة © {new Date().getFullYear()}
+        {/* Features Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="mt-20 grid md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+        >
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-shadow duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4 mr-auto">
+              <span className="text-white text-2xl">📋</span>
+            </div>
+            <h4 className="text-xl font-bold text-gray-800 mb-2 text-right">إدارة الاشتراطات</h4>
+            <p className="text-gray-600 text-right">
+              إدارة شاملة لجميع اشتراطات التصدير بطريقة منظمة وفعالة
             </p>
-          </motion.div>
-        </motion.div>
-      </div>
-    </div>);
+          </div>
 
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-shadow duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 mr-auto">
+              <span className="text-white text-2xl">📊</span>
+            </div>
+            <h4 className="text-xl font-bold text-gray-800 mb-2 text-right">تقارير تفصيلية</h4>
+            <p className="text-gray-600 text-right">
+              تقارير دقيقة وتحليلات شاملة لمتابعة الأداء
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-shadow duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mb-4 mr-auto">
+              <span className="text-white text-2xl">🔒</span>
+            </div>
+            <h4 className="text-xl font-bold text-gray-800 mb-2 text-right">أمان متقدم</h4>
+            <p className="text-gray-600 text-right">
+              حماية قصوى لبياناتك مع أعلى معايير الأمان
+            </p>
+          </div>
+        </motion.div>
+      </main>
+
+      {/* Footer */}
+      <footer className="mt-20 border-t border-gray-200 py-8 bg-white/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 text-center text-gray-600">
+          <p>© {new Date().getFullYear()} ExportReq. جميع الحقوق محفوظة</p>
+        </div>
+      </footer>
+    </div>
+  );
 };
 
 export default HomePage;
