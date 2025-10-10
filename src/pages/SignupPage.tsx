@@ -28,7 +28,7 @@ const SignupPage = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Get reCAPTCHA site key from environment variables
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfOiuUrAAAAAGsNyqsNSb5PPXGiBKROd9PTnW6G';
 
   const calculatePasswordStrength = (password: string): number => {
     let strength = 0;
@@ -190,7 +190,7 @@ const SignupPage = () => {
         title: 'خطأ في إنشاء الحساب',
         description: error.message || 'حدث خطأ أثناء إنشاء الحساب'
       });
-      
+
       // Reset reCAPTCHA on error
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
@@ -228,18 +228,18 @@ const SignupPage = () => {
           </div>
           <p className="text-sm text-gray-500 mt-4" dir="rtl">
             للحصول على مفاتيح reCAPTCHA، قم بزيارة:{' '}
-            <a 
-              href="https://www.google.com/recaptcha/admin" 
-              target="_blank" 
+            <a
+              href="https://www.google.com/recaptcha/admin"
+              target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
+              className="text-blue-600 hover:underline">
+
               Google reCAPTCHA Admin
             </a>
           </p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -354,8 +354,8 @@ const SignupPage = () => {
                     title: 'خطأ في reCAPTCHA',
                     description: 'فشل تحميل reCAPTCHA. يرجى تحديث الصفحة والمحاولة مرة أخرى.'
                   });
-                }}
-              />
+                }} />
+
             </div>
             {errors.recaptcha && <p className="text-red-500 text-sm text-center">{errors.recaptcha}</p>}
 
