@@ -43,8 +43,6 @@ export default function EditRequirementPage() {
   const [shortRequirements, setShortRequirements] = useState<ShortRequirement[]>([]);
 
   // Form state
-  const [selectedCountry, setSelectedCountry] = useState<string>('');
-  const [selectedCrop, setSelectedCrop] = useState<string>('');
   const [selectedShortReqs, setSelectedShortReqs] = useState<number[]>([]);
   const [fullRequirements, setFullRequirements] = useState('');
   const [publicationNumber, setPublicationNumber] = useState('');
@@ -78,8 +76,6 @@ export default function EditRequirementPage() {
 
       // Populate form with existing data
       if (requirementData) {
-        setSelectedCountry(requirementData.country_id.toString());
-        setSelectedCrop(requirementData.crop_id.toString());
         setFullRequirements(requirementData.full_requirements || '');
         setPublicationNumber(requirementData.publication_number || '');
         setPublicationYear(requirementData.publication_year || '');

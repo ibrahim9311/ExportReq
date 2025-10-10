@@ -57,7 +57,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
       id,
       comment_text,
       created_at,
-      profiles ( full_name_ar, username_en ),
+      profiles!inner ( full_name_ar, username_en ),
       export_requirements (
         id,
         countries!inner ( id, name_ar ),
@@ -103,7 +103,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <User size={14} />
-                    {fb.profiles?.[0]?.full_name_ar || fb.profiles?.[0]?.username_en}
+                    {fb.profiles.full_name_ar || fb.profiles.username_en}
                   </span>
                   <span className="flex items-center gap-1"><Calendar size={14} /> {format(new Date(fb.created_at), 'yyyy/MM/dd - HH:mm')}</span>
                 </div>

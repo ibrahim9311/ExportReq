@@ -22,9 +22,7 @@ type RequirementResult = {
   publication_year: number;
   pdf_file_url: string;
   requirement_short_requirements: {
-    short_requirements: {
-      name: string;
-    } | null;
+    short_requirements: { name: string };
   }[];
 };
 
