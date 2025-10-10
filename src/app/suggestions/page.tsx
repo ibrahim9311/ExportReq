@@ -103,7 +103,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <User size={14} />
-                    {fb.profiles.full_name_ar || fb.profiles.username_en}
+                    {(fb.profiles as any).full_name_ar || (fb.profiles as any).username_en}
                   </span>
                   <span className="flex items-center gap-1"><Calendar size={14} /> {format(new Date(fb.created_at), 'yyyy/MM/dd - HH:mm')}</span>
                 </div>
