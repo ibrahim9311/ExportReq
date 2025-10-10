@@ -9,10 +9,12 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, Loader2, Plus, X } from 'lucide-react';
+import { ArrowRight, Loader2, Plus, Check, ChevronsUpDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 const requirementSchema = z.object({
   country_id: z.string().min(1, 'يرجى اختيار الدولة'),
@@ -52,6 +54,8 @@ const AddRequirementPage = () => {
   const [shortRequirements, setShortRequirements] = useState<ShortRequirement[]>([]);
   const [selectedShortReqs, setSelectedShortReqs] = useState<number[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [openCountry, setOpenCountry] = useState(false);
+  const [openCrop, setOpenCrop] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<RequirementFormData>({
     resolver: zodResolver(requirementSchema)
@@ -160,6 +164,18 @@ const AddRequirementPage = () => {
     );
   };
 
+  const getCountryName = (id: string | undefined) => {
+    if (!id) return 'اختر الدولة';
+    const country = countries.find((c) => c.id === parseInt(id));
+    return country?.name_ar || 'اختر الدولة';
+  };
+
+  const getCropName = (id: string | undefined) => {
+    if (!id) return 'اختر المحصول';
+    const crop = crops.find((c) => c.id === parseInt(id));
+    return crop?.name_ar || 'اختر المحصول';
+  };
+
   if (loadingData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center" dir="rtl">
@@ -190,36 +206,90 @@ const AddRequirementPage = () => {
             {/* Country Selection */}
             <div className="space-y-2">
               <Label htmlFor="country_id">الدولة *</Label>
-              <Select value={countryId} onValueChange={(val) => setValue('country_id', val)}>
-                <SelectTrigger className={errors.country_id ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="اختر الدولة" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country) =>
-                  <SelectItem key={country.id} value={country.id.toString()}>
-                      {country.name_ar}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover open={openCountry} onOpenChange={setOpenCountry}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCountry}
+                    className={cn("w-full justify-between", errors.country_id && 'border-red-500')}
+                    disabled={loadingData}>
+                    {getCountryName(countryId)}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="ابحث عن دولة..." className="h-9" />
+                    <CommandList>
+                      <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                      <CommandGroup>
+                        {countries.map((country) =>
+                        <CommandItem
+                          key={country.id}
+                          value={country.name_ar}
+                          onSelect={() => {
+                            setValue('country_id', country.id.toString());
+                            setOpenCountry(false);
+                          }}>
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                countryId === country.id.toString() ? 'opacity-100' : 'opacity-0'
+                              )} />
+                            {country.name_ar}
+                          </CommandItem>
+                        )}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               {errors.country_id && <p className="text-sm text-red-500">{errors.country_id.message}</p>}
             </div>
 
             {/* Crop Selection */}
             <div className="space-y-2">
               <Label htmlFor="crop_id">المحصول *</Label>
-              <Select value={cropId} onValueChange={(val) => setValue('crop_id', val)}>
-                <SelectTrigger className={errors.crop_id ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="اختر المحصول" />
-                </SelectTrigger>
-                <SelectContent>
-                  {crops.map((crop) =>
-                  <SelectItem key={crop.id} value={crop.id.toString()}>
-                      {crop.name_ar}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover open={openCrop} onOpenChange={setOpenCrop}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCrop}
+                    className={cn("w-full justify-between", errors.crop_id && 'border-red-500')}
+                    disabled={loadingData}>
+                    {getCropName(cropId)}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="ابحث عن محصول..." className="h-9" />
+                    <CommandList>
+                      <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                      <CommandGroup>
+                        {crops.map((crop) =>
+                        <CommandItem
+                          key={crop.id}
+                          value={crop.name_ar}
+                          onSelect={() => {
+                            setValue('crop_id', crop.id.toString());
+                            setOpenCrop(false);
+                          }}>
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                cropId === crop.id.toString() ? 'opacity-100' : 'opacity-0'
+                              )} />
+                            {crop.name_ar}
+                          </CommandItem>
+                        )}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               {errors.crop_id && <p className="text-sm text-red-500">{errors.crop_id.message}</p>}
             </div>
 

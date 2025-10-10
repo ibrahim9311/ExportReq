@@ -4,16 +4,19 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, FileText, Filter } from 'lucide-react';
+import { ArrowRight, Loader2, Plus, Pencil, Trash2, Search, ArrowUpDown, FileText, Filter, Check, ChevronsUpDown, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 interface Requirement {
   id: number;
@@ -52,10 +55,12 @@ const ViewRequirementsPage = () => {
   const [filteredRequirements, setFilteredRequirements] = useState<Requirement[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCountry, setFilterCountry] = useState<string>('all');
-  const [filterCrop, setFilterCrop] = useState<string>('all');
+  const [filterCountry, setFilterCountry] = useState<number | null>(null);
+  const [filterCrop, setFilterCrop] = useState<number | null>(null);
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [openCountryFilter, setOpenCountryFilter] = useState(false);
+  const [openCropFilter, setOpenCropFilter] = useState(false);
 
   const [countries, setCountries] = useState<Country[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
@@ -134,13 +139,13 @@ const ViewRequirementsPage = () => {
     }
 
     // Country filter
-    if (filterCountry !== 'all') {
-      filtered = filtered.filter((req) => req.country_id === parseInt(filterCountry));
+    if (filterCountry !== null) {
+      filtered = filtered.filter((req) => req.country_id === filterCountry);
     }
 
     // Crop filter
-    if (filterCrop !== 'all') {
-      filtered = filtered.filter((req) => req.crop_id === parseInt(filterCrop));
+    if (filterCrop !== null) {
+      filtered = filtered.filter((req) => req.crop_id === filterCrop);
     }
 
     // Sort
@@ -299,6 +304,24 @@ const ViewRequirementsPage = () => {
     );
   };
 
+  const getCountryName = (id: number | null) => {
+    if (id === null) return 'جميع الدول';
+    const country = countries.find((c) => c.id === id);
+    return country?.name_ar || 'جميع الدول';
+  };
+
+  const getCropName = (id: number | null) => {
+    if (id === null) return 'جميع المحاصيل';
+    const crop = crops.find((c) => c.id === id);
+    return crop?.name_ar || 'جميع المحاصيل';
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterCountry(null);
+    setFilterCrop(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center" dir="rtl">
@@ -334,47 +357,119 @@ const ViewRequirementsPage = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pr-10" />
-
             </div>
             
-            <Select value={filterCountry} onValueChange={setFilterCountry}>
-              <SelectTrigger>
-                <SelectValue placeholder="الدولة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل الدول</SelectItem>
-                {countries.map((country) =>
-                <SelectItem key={country.id} value={country.id.toString()}>
-                    {country.name_ar}
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            {/* Country Filter */}
+            <Popover open={openCountryFilter} onOpenChange={setOpenCountryFilter}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCountryFilter}
+                  className="w-full justify-between">
+                  {getCountryName(filterCountry)}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="ابحث عن دولة..." className="h-9" />
+                  <CommandList>
+                    <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setFilterCountry(null);
+                          setOpenCountryFilter(false);
+                        }}>
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterCountry === null ? 'opacity-100' : 'opacity-0'
+                          )} />
+                        جميع الدول
+                      </CommandItem>
+                      {countries.map((country) =>
+                      <CommandItem
+                        key={country.id}
+                        value={country.name_ar}
+                        onSelect={() => {
+                          setFilterCountry(country.id);
+                          setOpenCountryFilter(false);
+                        }}>
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              filterCountry === country.id ? 'opacity-100' : 'opacity-0'
+                            )} />
+                          {country.name_ar}
+                        </CommandItem>
+                      )}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
-            <Select value={filterCrop} onValueChange={setFilterCrop}>
-              <SelectTrigger>
-                <SelectValue placeholder="المحصول" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">كل المحاصيل</SelectItem>
-                {crops.map((crop) =>
-                <SelectItem key={crop.id} value={crop.id.toString()}>
-                    {crop.name_ar}
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            {/* Crop Filter */}
+            <Popover open={openCropFilter} onOpenChange={setOpenCropFilter}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCropFilter}
+                  className="w-full justify-between">
+                  {getCropName(filterCrop)}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="ابحث عن محصول..." className="h-9" />
+                  <CommandList>
+                    <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setFilterCrop(null);
+                          setOpenCropFilter(false);
+                        }}>
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterCrop === null ? 'opacity-100' : 'opacity-0'
+                          )} />
+                        جميع المحاصيل
+                      </CommandItem>
+                      {crops.map((crop) =>
+                      <CommandItem
+                        key={crop.id}
+                        value={crop.name_ar}
+                        onSelect={() => {
+                          setFilterCrop(crop.id);
+                          setOpenCropFilter(false);
+                        }}>
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              filterCrop === crop.id ? 'opacity-100' : 'opacity-0'
+                            )} />
+                          {crop.name_ar}
+                        </CommandItem>
+                      )}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             <Button
               variant="outline"
-              onClick={() => {
-                setSearchTerm('');
-                setFilterCountry('all');
-                setFilterCrop('all');
-              }}
+              onClick={clearFilters}
               className="gap-2">
-
-              <Filter className="w-4 h-4" />
+              <X className="w-4 h-4" />
               مسح الفلاتر
             </Button>
           </div>

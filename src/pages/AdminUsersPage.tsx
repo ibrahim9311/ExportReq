@@ -85,7 +85,7 @@ const AdminUsersPage = () => {
 
       const { data: profile, error: profileError } = await supabase.
       from('profiles').
-      select('role_id, roles(name)').
+      select('role_id').
       eq('id', user.id).
       single();
 
@@ -99,19 +99,18 @@ const AdminUsersPage = () => {
         return;
       }
 
-      // Check if user is admin (assuming role name is 'admin')
-      const roleName = (profile as any).roles?.name?.toLowerCase();
-      if (roleName !== 'admin') {
+      // Check if user has role_id 4 or 5
+      if (profile.role_id !== 4 && profile.role_id !== 5) {
         toast({
           variant: 'destructive',
           title: 'غير مصرح',
-          description: 'هذه الصفحة مخصصة للمسؤولين فقط'
+          description: 'هذه الصفحة مخصصة للمسؤولين فقط (صلاحيات محدودة)'
         });
         navigate('/dashboard');
         return;
       }
 
-      // User is admin, load data
+      // User is authorized, load data
       loadData();
     } catch (error) {
       console.error('Authorization error:', error);
