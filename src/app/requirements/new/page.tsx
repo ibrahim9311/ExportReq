@@ -5,11 +5,11 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { ArrowRight, Loader2, Upload } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -74,9 +74,11 @@ export default function NewRequirementPage() {
 
     // 1. Upload PDF file if it exists
     let pdfUrl = null;
+    let uploadedFilePath: string | null = null;
+
     if (pdfFile) {
       const filePath = `public/${Date.now()}-${pdfFile.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('requirements-files') // Make sure this bucket exists and is public
         .upload(filePath, pdfFile);
 
@@ -86,6 +88,7 @@ export default function NewRequirementPage() {
         return;
       }
 
+      uploadedFilePath = filePath; // Keep track of the uploaded file path
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('requirements-files')
@@ -105,6 +108,12 @@ export default function NewRequirementPage() {
     });
 
     if (rpcError) {
+      // If DB insert fails, delete the newly uploaded file to prevent orphaned files
+      if (uploadedFilePath) {
+        await supabase.storage.from('requirements-files').remove([uploadedFilePath]);
+        toast.warning("تم التراجع عن رفع الملف بسبب فشل الحفظ.");
+      }
+
       // Check for unique constraint violation from the underlying table
       if (rpcError.message.includes('duplicate key value violates unique constraint "export_requirements_country_id_crop_id_key"')) {
         toast.error('فشل الحفظ: اشتراط مكرر', {
@@ -180,7 +189,6 @@ export default function NewRequirementPage() {
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>بيانات المنشور (اختياري)</CardTitle>
-            <CardDescription>يمكنك إضافة هذه البيانات الآن أو تعديلها لاحقاً.</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="grid gap-2">

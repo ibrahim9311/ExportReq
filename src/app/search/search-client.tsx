@@ -83,7 +83,7 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
         .single();
 
       if (data) {
-        setSearchResult(data as RequirementResult);
+        setSearchResult(data as unknown as RequirementResult);
       } else {
         setSearchResult('not_found');
       }
@@ -111,6 +111,7 @@ const SearchClient: FC<SearchClientProps> = ({ initialCountries, initialCrops })
   const handleReset = () => {
     setSelectedCountry('');
     setSelectedCrop('');
+    setSearching(false);
     setSearchResult(null);
     router.push('/search'); // Clear URL params
   };

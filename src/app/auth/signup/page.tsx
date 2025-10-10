@@ -73,7 +73,7 @@ export default function SignUpPage() {
           username_en: username,
         },
         // This is the URL the user will be redirected to after clicking the confirmation link
-        emailRedirectTo: `${location.origin}/auth/callback?next=/dashboard`,
+        emailRedirectTo: `${location.origin}/auth/callback?next=/dashboard`, // This is correct, no change needed but confirming its logic.
       },
     });
 
@@ -89,12 +89,8 @@ export default function SignUpPage() {
           description: "تم إرسال رابط التفعيل إلى بريدك الإلكتروني. الرجاء التحقق من بريدك لإكمال التسجيل.",
           duration: 5000,
         })
-        // Optionally, clear the form
-        setUsername('');
-        setEmail('');
-        setConfirmEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        // Redirect immediately to the login page with a message, prompting the user to log in after verification.
+        router.push('/login?message=registration_successful');
     }
 
     setLoading(false);

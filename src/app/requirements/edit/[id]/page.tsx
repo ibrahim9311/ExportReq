@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -8,11 +8,22 @@ import { toast } from 'sonner';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type ShortRequirement = { id: number; name: string };
 
@@ -26,8 +37,8 @@ type RequirementData = {
   pdf_file_url: string | null;
   requirement_short_requirements: { short_requirement_id: number }[];
   // Supabase can return a single object or an array for relations
-  countries: { name_ar: string } | { name_ar: string }[];
-  crops: { name_ar: string } | { name_ar: string }[];
+  countries: { name_ar: string };
+  crops: { name_ar: string };
 };
 
 
@@ -49,6 +60,7 @@ export default function EditRequirementPage() {
   const [publicationYear, setPublicationYear] = useState<number | ''>('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [existingPdfUrl, setExistingPdfUrl] = useState<string | null>(null);
+
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -82,11 +94,9 @@ export default function EditRequirementPage() {
         setExistingPdfUrl(requirementData.pdf_file_url);
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
         
-        // Type-safe access to related data
-        const country = Array.isArray(requirementData.countries) ? requirementData.countries[0] : requirementData.countries;
-        const crop = Array.isArray(requirementData.crops) ? requirementData.crops[0] : requirementData.crops;
-        setCountryName(country?.name_ar || '');
-        setCropName(crop?.name_ar || '');
+        // Simplified type-safe access
+        setCountryName(requirementData.countries.name_ar || '');
+        setCropName(requirementData.crops.name_ar || '');
       } else if (error) {
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
@@ -103,13 +113,27 @@ export default function EditRequirementPage() {
     );
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleRemovePdf = async () => {
+    if (!existingPdfUrl) return;
+    
+    const fileName = existingPdfUrl.split('/').pop();
+    if (!fileName) return;
+
+    // Optimistically update UI
+    setExistingPdfUrl(null);
+
+    // No need to delete from storage immediately. The RPC function will set the URL to null.
+    // If you want to clean up storage, you'd do it after a successful DB update.
+    toast.info("سيتم إزالة الملف عند الحفظ.");
+  };
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
 
     let newPdfUrl = existingPdfUrl;
+    let uploadedFilePath: string | null = null;
 
-    // 1. Upload new PDF if it exists
+    // 1. Upload new PDF if selected
     if (pdfFile) {
       const filePath = `public/${Date.now()}-${pdfFile.name}`;
       const { error: uploadError } = await supabase.storage
@@ -123,6 +147,7 @@ export default function EditRequirementPage() {
       }
       const { data: urlData } = supabase.storage.from('requirements-files').getPublicUrl(filePath);
       newPdfUrl = urlData.publicUrl;
+      uploadedFilePath = filePath; // Keep track of the uploaded file path
     }
 
     // 2. Call the RPC function to update everything atomically
@@ -136,6 +161,12 @@ export default function EditRequirementPage() {
     });
 
     if (rpcError) {
+      // If DB update fails, delete the newly uploaded file to prevent orphaned files
+      if (uploadedFilePath) {
+        await supabase.storage.from('requirements-files').remove([uploadedFilePath]);
+        toast.warning("تم التراجع عن رفع الملف بسبب فشل التحديث.");
+      }
+
       toast.error('فشل تحديث الاشتراط', { description: rpcError.message });
       setIsSubmitting(false);
       return;
@@ -163,7 +194,7 @@ export default function EditRequirementPage() {
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <Card>
           <CardHeader><CardTitle>بيانات الاشتراط الأساسية</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,19 +259,40 @@ export default function EditRequirementPage() {
               <Label htmlFor="pdf-file">تغيير/إضافة ملف المنشور (PDF)</Label>
               <Input id="pdf-file" type="file" accept="application/pdf" onChange={e => setPdfFile(e.target.files ? e.target.files[0] : null)} />
               {existingPdfUrl && !pdfFile && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  يوجد ملف مرفق حالياً. <a href={existingPdfUrl} target="_blank" rel="noopener noreferrer" className="underline">عرض الملف الحالي</a>
-                </p>
+                <div className="flex items-center justify-between text-sm text-muted-foreground mt-2 p-2 border rounded-md">
+                  <span>
+                    يوجد ملف مرفق حالياً. <a href={existingPdfUrl} target="_blank" rel="noopener noreferrer" className="underline">عرض الملف</a>
+                  </span>
+                  <Button type="button" variant="destructive" size="sm" onClick={handleRemovePdf}>إزالة الملف</Button>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
         <div className="mt-6 flex justify-end">
-          <Button type="submit" size="lg" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-            حفظ التعديلات
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="lg" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : null}
+                حفظ التعديلات
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>تأكيد حفظ التعديلات</AlertDialogTitle>
+                <AlertDialogDescription>
+                  هل أنت متأكد من أنك تريد حفظ التغييرات التي قمت بها على هذا الاشتراط؟
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : "تأكيد الحفظ"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </form>
     </div>
