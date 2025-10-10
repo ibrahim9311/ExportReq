@@ -25,8 +25,8 @@ interface Requirement {
   pdf_file_url: string | null;
   notes: string | null;
   created_at: string;
-  countries: { name_ar: string } | null;
-  crops: { name_ar: string } | null;
+  countries: {name_ar: string;} | null;
+  crops: {name_ar: string;} | null;
 }
 
 interface Country {
@@ -47,7 +47,7 @@ interface ShortRequirement {
 const ViewRequirementsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [filteredRequirements, setFilteredRequirements] = useState<Requirement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,11 +56,11 @@ const ViewRequirementsPage = () => {
   const [filterCrop, setFilterCrop] = useState<string>('all');
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  
+
   const [countries, setCountries] = useState<Country[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [shortRequirements, setShortRequirements] = useState<ShortRequirement[]>([]);
-  
+
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedReq, setSelectedReq] = useState<Requirement | null>(null);
@@ -71,7 +71,7 @@ const ViewRequirementsPage = () => {
     publication_number: '',
     publication_year: '',
     pdf_file_url: '',
-    notes: '',
+    notes: ''
   });
   const [selectedShortReqs, setSelectedShortReqs] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -87,18 +87,18 @@ const ViewRequirementsPage = () => {
   const fetchData = async () => {
     try {
       const [reqsRes, countriesRes, cropsRes, shortReqsRes] = await Promise.all([
-        supabase
-          .from('export_requirements')
-          .select(`
+      supabase.
+      from('export_requirements').
+      select(`
             *,
             countries(name_ar),
             crops(name_ar)
-          `)
-          .order('created_at', { ascending: false }),
-        supabase.from('countries').select('id, name_ar').order('name_ar'),
-        supabase.from('crops').select('id, name_ar').order('name_ar'),
-        supabase.from('short_requirements').select('*').order('name'),
-      ]);
+          `).
+      order('created_at', { ascending: false }),
+      supabase.from('countries').select('id, name_ar').order('name_ar'),
+      supabase.from('crops').select('id, name_ar').order('name_ar'),
+      supabase.from('short_requirements').select('*').order('name')]
+      );
 
       if (reqsRes.error) throw reqsRes.error;
       if (countriesRes.error) throw countriesRes.error;
@@ -113,7 +113,7 @@ const ViewRequirementsPage = () => {
       toast({
         title: 'خطأ',
         description: error.message || 'فشل تحميل البيانات',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -125,22 +125,22 @@ const ViewRequirementsPage = () => {
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(req =>
-        req.full_requirements?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.countries?.name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.crops?.name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        req.publication_number?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((req) =>
+      req.full_requirements?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.countries?.name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.crops?.name_ar.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      req.publication_number?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Country filter
     if (filterCountry !== 'all') {
-      filtered = filtered.filter(req => req.country_id === parseInt(filterCountry));
+      filtered = filtered.filter((req) => req.country_id === parseInt(filterCountry));
     }
 
     // Crop filter
     if (filterCrop !== 'all') {
-      filtered = filtered.filter(req => req.crop_id === parseInt(filterCrop));
+      filtered = filtered.filter((req) => req.crop_id === parseInt(filterCrop));
     }
 
     // Sort
@@ -173,17 +173,17 @@ const ViewRequirementsPage = () => {
       publication_number: req.publication_number || '',
       publication_year: req.publication_year?.toString() || '',
       pdf_file_url: req.pdf_file_url || '',
-      notes: req.notes || '',
+      notes: req.notes || ''
     });
 
     // Fetch linked short requirements
-    const { data, error } = await supabase
-      .from('requirement_short_requirements')
-      .select('short_requirement_id')
-      .eq('requirement_id', req.id);
+    const { data, error } = await supabase.
+    from('requirement_short_requirements').
+    select('short_requirement_id').
+    eq('requirement_id', req.id);
 
     if (!error && data) {
-      setSelectedShortReqs(data.map(d => d.short_requirement_id));
+      setSelectedShortReqs(data.map((d) => d.short_requirement_id));
     } else {
       setSelectedShortReqs([]);
     }
@@ -196,45 +196,45 @@ const ViewRequirementsPage = () => {
 
     setIsSaving(true);
     try {
-      const { error: updateError } = await supabase
-        .from('export_requirements')
-        .update({
-          country_id: parseInt(editForm.country_id),
-          crop_id: parseInt(editForm.crop_id),
-          full_requirements: editForm.full_requirements,
-          publication_number: editForm.publication_number || null,
-          publication_year: editForm.publication_year ? parseInt(editForm.publication_year) : null,
-          pdf_file_url: editForm.pdf_file_url || null,
-          notes: editForm.notes || null,
-        })
-        .eq('id', selectedReq.id);
+      const { error: updateError } = await supabase.
+      from('export_requirements').
+      update({
+        country_id: parseInt(editForm.country_id),
+        crop_id: parseInt(editForm.crop_id),
+        full_requirements: editForm.full_requirements,
+        publication_number: editForm.publication_number || null,
+        publication_year: editForm.publication_year ? parseInt(editForm.publication_year) : null,
+        pdf_file_url: editForm.pdf_file_url || null,
+        notes: editForm.notes || null
+      }).
+      eq('id', selectedReq.id);
 
       if (updateError) throw updateError;
 
       // Update short requirements links
       // First delete existing
-      await supabase
-        .from('requirement_short_requirements')
-        .delete()
-        .eq('requirement_id', selectedReq.id);
+      await supabase.
+      from('requirement_short_requirements').
+      delete().
+      eq('requirement_id', selectedReq.id);
 
       // Insert new ones
       if (selectedShortReqs.length > 0) {
-        const links = selectedShortReqs.map(shortReqId => ({
+        const links = selectedShortReqs.map((shortReqId) => ({
           requirement_id: selectedReq.id,
-          short_requirement_id: shortReqId,
+          short_requirement_id: shortReqId
         }));
 
-        const { error: linkError } = await supabase
-          .from('requirement_short_requirements')
-          .insert(links);
+        const { error: linkError } = await supabase.
+        from('requirement_short_requirements').
+        insert(links);
 
         if (linkError) throw linkError;
       }
 
       toast({
         title: 'نجح',
-        description: 'تم تحديث الاشتراط بنجاح',
+        description: 'تم تحديث الاشتراط بنجاح'
       });
 
       setEditDialogOpen(false);
@@ -243,7 +243,7 @@ const ViewRequirementsPage = () => {
       toast({
         title: 'خطأ',
         description: error.message || 'فشل في تحديث الاشتراط',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setIsSaving(false);
@@ -255,22 +255,22 @@ const ViewRequirementsPage = () => {
 
     try {
       // Delete linked short requirements first
-      await supabase
-        .from('requirement_short_requirements')
-        .delete()
-        .eq('requirement_id', selectedReq.id);
+      await supabase.
+      from('requirement_short_requirements').
+      delete().
+      eq('requirement_id', selectedReq.id);
 
       // Delete the requirement
-      const { error } = await supabase
-        .from('export_requirements')
-        .delete()
-        .eq('id', selectedReq.id);
+      const { error } = await supabase.
+      from('export_requirements').
+      delete().
+      eq('id', selectedReq.id);
 
       if (error) throw error;
 
       toast({
         title: 'نجح',
-        description: 'تم حذف الاشتراط بنجاح',
+        description: 'تم حذف الاشتراط بنجاح'
       });
 
       setDeleteDialogOpen(false);
@@ -279,7 +279,7 @@ const ViewRequirementsPage = () => {
       toast({
         title: 'خطأ',
         description: error.message || 'فشل في حذف الاشتراط',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
@@ -294,8 +294,8 @@ const ViewRequirementsPage = () => {
   };
 
   const toggleShortReq = (id: number) => {
-    setSelectedShortReqs(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    setSelectedShortReqs((prev) =>
+    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
@@ -303,8 +303,8 @@ const ViewRequirementsPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center" dir="rtl">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -333,8 +333,8 @@ const ViewRequirementsPage = () => {
                 placeholder="بحث..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
+                className="pr-10" />
+
             </div>
             
             <Select value={filterCountry} onValueChange={setFilterCountry}>
@@ -343,11 +343,11 @@ const ViewRequirementsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل الدول</SelectItem>
-                {countries.map((country) => (
-                  <SelectItem key={country.id} value={country.id.toString()}>
+                {countries.map((country) =>
+                <SelectItem key={country.id} value={country.id.toString()}>
                     {country.name_ar}
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
 
@@ -357,11 +357,11 @@ const ViewRequirementsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل المحاصيل</SelectItem>
-                {crops.map((crop) => (
-                  <SelectItem key={crop.id} value={crop.id.toString()}>
+                {crops.map((crop) =>
+                <SelectItem key={crop.id} value={crop.id.toString()}>
                     {crop.name_ar}
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
 
@@ -372,8 +372,8 @@ const ViewRequirementsPage = () => {
                 setFilterCountry('all');
                 setFilterCrop('all');
               }}
-              className="gap-2"
-            >
+              className="gap-2">
+
               <Filter className="w-4 h-4" />
               مسح الفلاتر
             </Button>
@@ -410,15 +410,15 @@ const ViewRequirementsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRequirements.length === 0 ? (
-                    <TableRow>
+                  {filteredRequirements.length === 0 ?
+                  <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                         لا توجد تسجيلات
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredRequirements.map((req) => (
-                      <TableRow key={req.id} className="hover:bg-gray-50">
+                    </TableRow> :
+
+                  filteredRequirements.map((req) =>
+                  <TableRow key={req.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{req.countries?.name_ar || '-'}</TableCell>
                         <TableCell>{req.crops?.name_ar || '-'}</TableCell>
                         <TableCell className="max-w-xs truncate" title={req.full_requirements}>
@@ -428,48 +428,48 @@ const ViewRequirementsPage = () => {
                         <TableCell>{req.publication_number || '-'}</TableCell>
                         <TableCell>{req.publication_year || '-'}</TableCell>
                         <TableCell>
-                          {req.pdf_file_url ? (
-                            <a
-                              href={req.pdf_file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                            >
+                          {req.pdf_file_url ?
+                      <a
+                        href={req.pdf_file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline inline-flex items-center gap-1">
+
                               <FileText className="w-4 h-4" />
                               عرض
-                            </a>
-                          ) : (
-                            '-'
-                          )}
+                            </a> :
+
+                      '-'
+                      }
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(req)}
-                              className="gap-1"
-                            >
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(req)}
+                          className="gap-1">
+
                               <Pencil className="w-3 h-3" />
                               تعديل
                             </Button>
                             <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedReq(req);
-                                setDeleteDialogOpen(true);
-                              }}
-                              className="gap-1"
-                            >
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedReq(req);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="gap-1">
+
                               <Trash2 className="w-3 h-3" />
                               حذف
                             </Button>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                  )
+                  }
                 </TableBody>
               </Table>
             </div>
@@ -497,11 +497,11 @@ const ViewRequirementsPage = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country.id} value={country.id.toString()}>
+                  {countries.map((country) =>
+                  <SelectItem key={country.id} value={country.id.toString()}>
                       {country.name_ar}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -513,11 +513,11 @@ const ViewRequirementsPage = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {crops.map((crop) => (
-                    <SelectItem key={crop.id} value={crop.id.toString()}>
+                  {crops.map((crop) =>
+                  <SelectItem key={crop.id} value={crop.id.toString()}>
                       {crop.name_ar}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -527,8 +527,8 @@ const ViewRequirementsPage = () => {
               <Textarea
                 value={editForm.full_requirements}
                 onChange={(e) => setEditForm({ ...editForm, full_requirements: e.target.value })}
-                rows={5}
-              />
+                rows={5} />
+
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -536,8 +536,8 @@ const ViewRequirementsPage = () => {
                 <Label>رقم النشرة</Label>
                 <Input
                   value={editForm.publication_number}
-                  onChange={(e) => setEditForm({ ...editForm, publication_number: e.target.value })}
-                />
+                  onChange={(e) => setEditForm({ ...editForm, publication_number: e.target.value })} />
+
               </div>
 
               <div className="space-y-2">
@@ -545,8 +545,8 @@ const ViewRequirementsPage = () => {
                 <Input
                   type="number"
                   value={editForm.publication_year}
-                  onChange={(e) => setEditForm({ ...editForm, publication_year: e.target.value })}
-                />
+                  onChange={(e) => setEditForm({ ...editForm, publication_year: e.target.value })} />
+
               </div>
             </div>
 
@@ -555,25 +555,25 @@ const ViewRequirementsPage = () => {
               <Input
                 type="url"
                 value={editForm.pdf_file_url}
-                onChange={(e) => setEditForm({ ...editForm, pdf_file_url: e.target.value })}
-              />
+                onChange={(e) => setEditForm({ ...editForm, pdf_file_url: e.target.value })} />
+
             </div>
 
             <div className="space-y-2">
               <Label>الاشتراطات المختصرة</Label>
               <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-2">
-                {shortRequirements.map((shortReq) => (
-                  <div key={shortReq.id} className="flex items-center gap-2">
+                {shortRequirements.map((shortReq) =>
+                <div key={shortReq.id} className="flex items-center gap-2">
                     <Checkbox
-                      id={`edit-short-${shortReq.id}`}
-                      checked={selectedShortReqs.includes(shortReq.id)}
-                      onCheckedChange={() => toggleShortReq(shortReq.id)}
-                    />
+                    id={`edit-short-${shortReq.id}`}
+                    checked={selectedShortReqs.includes(shortReq.id)}
+                    onCheckedChange={() => toggleShortReq(shortReq.id)} />
+
                     <Label htmlFor={`edit-short-${shortReq.id}`} className="cursor-pointer font-normal">
                       {shortReq.name}
                     </Label>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -582,8 +582,8 @@ const ViewRequirementsPage = () => {
               <Textarea
                 value={editForm.notes}
                 onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                rows={3}
-              />
+                rows={3} />
+
             </div>
           </div>
 
@@ -592,14 +592,14 @@ const ViewRequirementsPage = () => {
               إلغاء
             </Button>
             <Button onClick={handleSaveEdit} disabled={isSaving}>
-              {isSaving ? (
-                <>
+              {isSaving ?
+              <>
                   <Loader2 className="w-4 h-4 ml-2 animate-spin" />
                   جاري الحفظ...
-                </>
-              ) : (
-                'حفظ التعديلات'
-              )}
+                </> :
+
+              'حفظ التعديلات'
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -622,8 +622,8 @@ const ViewRequirementsPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ViewRequirementsPage;

@@ -57,11 +57,11 @@ const DashboardPage = () => {
         }
 
         // Fetch profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role_id, full_name_ar')
-          .eq('id', user.id)
-          .single();
+        const { data: profileData, error: profileError } = await supabase.
+        from('profiles').
+        select('role_id, full_name_ar').
+        eq('id', user.id).
+        single();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
@@ -72,23 +72,23 @@ const DashboardPage = () => {
         setProfile(profileData);
 
         // Fetch subscription status
-        const { data: subscriptionData } = await supabase
-          .from('user_subscriptions')
-          .select(`
+        const { data: subscriptionData } = await supabase.
+        from('user_subscriptions').
+        select(`
             start_date,
             end_date,
             packages (name)
-          `)
-          .eq('user_id', user.id)
-          .order('end_date', { ascending: false })
-          .limit(1)
-          .single();
+          `).
+        eq('user_id', user.id).
+        order('end_date', { ascending: false }).
+        limit(1).
+        single();
 
         if (subscriptionData) {
           const endDate = new Date(subscriptionData.end_date);
           const today = new Date();
           const isActive = endDate >= today;
-          
+
           setSubscription({
             package_name: subscriptionData.packages?.name || 'غير محدد',
             end_date: subscriptionData.end_date,
@@ -98,28 +98,28 @@ const DashboardPage = () => {
         }
 
         // Fetch requirements count
-        const { count: requirementsCount } = await supabase
-          .from('export_requirements')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+        const { count: requirementsCount } = await supabase.
+        from('export_requirements').
+        select('*', { count: 'exact', head: true }).
+        eq('user_id', user.id);
 
         // Fetch recent edits count (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        
-        const { count: editsCount } = await supabase
-          .from('edit_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .gte('edit_date', sevenDaysAgo.toISOString());
+
+        const { count: editsCount } = await supabase.
+        from('edit_logs').
+        select('*', { count: 'exact', head: true }).
+        eq('user_id', user.id).
+        gte('edit_date', sevenDaysAgo.toISOString());
 
         // Fetch recent activities
-        const { data: activitiesData } = await supabase
-          .from('edit_logs')
-          .select('id, edit_type, edit_date, notes')
-          .eq('user_id', user.id)
-          .order('edit_date', { ascending: false })
-          .limit(5);
+        const { data: activitiesData } = await supabase.
+        from('edit_logs').
+        select('id, edit_type, edit_date, notes').
+        eq('user_id', user.id).
+        order('edit_date', { ascending: false }).
+        limit(5);
 
         setStats({
           totalRequirements: requirementsCount || 0,
@@ -146,43 +146,43 @@ const DashboardPage = () => {
   };
 
   const navigationButtons: NavigationButton[] = [
-    {
-      label: 'البحث عن الاشتراطات',
-      path: '/search',
-      icon: <Search className="w-6 h-6" />,
-      roles: [1, 2, 3, 4, 5]
-    },
-    {
-      label: 'تسجيل اشتراط جديد',
-      path: '/add-requirement',
-      icon: <FilePlus className="w-6 h-6" />,
-      roles: [2, 3, 4, 5]
-    },
-    {
-      label: 'عرض التسجيلات',
-      path: '/view-requirements',
-      icon: <FileText className="w-6 h-6" />,
-      roles: [2, 3, 4, 5]
-    },
-    {
-      label: 'الاقتراحات',
-      path: '/suggestions',
-      icon: <MessageSquare className="w-6 h-6" />,
-      roles: [2, 3, 4, 5]
-    },
-    {
-      label: 'التعديل على الاشتراطات',
-      path: '/edit-requirements',
-      icon: <Edit className="w-6 h-6" />,
-      roles: [3, 4, 5]
-    },
-    {
-      label: 'إدارة المستخدمين',
-      path: '/manage-users',
-      icon: <Users className="w-6 h-6" />,
-      roles: [4, 5]
-    }
-  ];
+  {
+    label: 'البحث عن الاشتراطات',
+    path: '/search',
+    icon: <Search className="w-6 h-6" />,
+    roles: [1, 2, 3, 4, 5]
+  },
+  {
+    label: 'تسجيل اشتراط جديد',
+    path: '/add-requirement',
+    icon: <FilePlus className="w-6 h-6" />,
+    roles: [2, 3, 4, 5]
+  },
+  {
+    label: 'عرض التسجيلات',
+    path: '/view-requirements',
+    icon: <FileText className="w-6 h-6" />,
+    roles: [2, 3, 4, 5]
+  },
+  {
+    label: 'الاقتراحات',
+    path: '/suggestions',
+    icon: <MessageSquare className="w-6 h-6" />,
+    roles: [2, 3, 4, 5]
+  },
+  {
+    label: 'التعديل على الاشتراطات',
+    path: '/edit-requirements',
+    icon: <Edit className="w-6 h-6" />,
+    roles: [3, 4, 5]
+  },
+  {
+    label: 'إدارة المستخدمين',
+    path: '/manage-users',
+    icon: <Users className="w-6 h-6" />,
+    roles: [4, 5]
+  }];
+
 
   const hasAccess = (roles: number[]) => {
     return profile && roles.includes(profile.role_id);
@@ -225,13 +225,13 @@ const DashboardPage = () => {
         </header>
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-32" />
-            ))}
+            {[1, 2, 3].map((i) =>
+            <Skeleton key={i} className="h-32" />
+            )}
           </div>
         </main>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -243,14 +243,14 @@ const DashboardPage = () => {
               <h1 className="text-2xl md:text-3xl font-bold text-indigo-900">
                 مرحباً، {profile?.full_name_ar || 'مستخدم'}
               </h1>
-              {subscription && (
-                <div className="mt-2 flex items-center gap-2">
+              {subscription &&
+              <div className="mt-2 flex items-center gap-2">
                   <Badge variant={subscription.is_active ? 'default' : 'secondary'} className="text-sm">
                     {subscription.is_active ? <CheckCircle2 className="w-3 h-3 ml-1" /> : <Clock className="w-3 h-3 ml-1" />}
                     {subscription.is_active ? 'اشتراك نشط' : 'اشتراك منتهي'}
                   </Badge>
                 </div>
-              )}
+              }
             </div>
             <div className="flex gap-3">
               <Button onClick={() => navigate('/profile')} variant="outline" className="gap-2">
@@ -303,17 +303,17 @@ const DashboardPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {subscription ? (
-                  <>
+                {subscription ?
+                <>
                     <p className="text-xl font-bold">{subscription.package_name}</p>
                     <p className="text-sm mt-1 flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
                       ينتهي: {formatDate(subscription.end_date)}
                     </p>
-                  </>
-                ) : (
-                  <p className="text-lg">لا توجد اشتراكات</p>
-                )}
+                  </> :
+
+                <p className="text-lg">لا توجد اشتراكات</p>
+                }
               </CardContent>
             </Card>
           </div>
@@ -328,10 +328,10 @@ const DashboardPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {recentActivities.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                {recentActivities.length > 0 ?
+                <div className="space-y-4">
+                    {recentActivities.map((activity) =>
+                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                         <div className="p-2 bg-indigo-100 rounded-full">
                           <Edit className="w-4 h-4 text-indigo-600" />
                         </div>
@@ -340,19 +340,19 @@ const DashboardPage = () => {
                             <span className="font-medium text-gray-800">{activity.edit_type || 'تعديل'}</span>
                             <span className="text-sm text-gray-500">{getTimeAgo(activity.edit_date)}</span>
                           </div>
-                          {activity.notes && (
-                            <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>
-                          )}
+                          {activity.notes &&
+                      <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>
+                      }
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  )}
+                  </div> :
+
+                <div className="text-center py-8 text-gray-500">
                     <Activity className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                     <p>لا توجد نشاطات حديثة</p>
                   </div>
-                )}
+                }
               </CardContent>
             </Card>
 
@@ -373,18 +373,18 @@ const DashboardPage = () => {
                   </p>
                 </div>
                 
-                {subscription && (
-                  <div className="p-3 bg-purple-50 rounded-lg">
+                {subscription &&
+                <div className="p-3 bg-purple-50 rounded-lg">
                     <p className="text-sm text-gray-600">تاريخ بدء الاشتراك</p>
                     <p className="font-semibold text-gray-800">{formatDate(subscription.start_date)}</p>
                   </div>
-                )}
+                }
 
-                <Button 
-                  onClick={() => navigate('/search')} 
+                <Button
+                  onClick={() => navigate('/search')}
                   className="w-full"
-                  variant="outline"
-                >
+                  variant="outline">
+
                   <Search className="w-4 h-4 ml-2" />
                   ابدأ البحث
                 </Button>
@@ -397,12 +397,12 @@ const DashboardPage = () => {
             <h2 className="text-xl font-bold text-gray-800 mb-4">الإجراءات السريعة</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {navigationButtons.map((button) =>
-                hasAccess(button.roles) ? (
-                  <Card
-                    key={button.path}
-                    className="p-4 hover:shadow-lg transition-all duration-300 cursor-pointer bg-white hover:bg-indigo-50 border-2 hover:border-indigo-300 group"
-                    onClick={() => navigate(button.path)}
-                  >
+              hasAccess(button.roles) ?
+              <Card
+                key={button.path}
+                className="p-4 hover:shadow-lg transition-all duration-300 cursor-pointer bg-white hover:bg-indigo-50 border-2 hover:border-indigo-300 group"
+                onClick={() => navigate(button.path)}>
+
                     <div className="flex flex-col items-center text-center gap-3">
                       <div className="p-3 bg-indigo-100 rounded-full text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                         {button.icon}
@@ -411,15 +411,15 @@ const DashboardPage = () => {
                         {button.label}
                       </h3>
                     </div>
-                  </Card>
-                ) : null
+                  </Card> :
+              null
               )}
             </div>
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default DashboardPage;

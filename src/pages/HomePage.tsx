@@ -18,7 +18,7 @@ const HomePage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!credentials.emailOrUsername.trim() || !credentials.password.trim()) {
       toast({
         variant: 'destructive',
@@ -38,9 +38,9 @@ const HomePage = () => {
 
       if (error) {
         console.error('Login error:', error);
-        
+
         let errorMessage = 'بيانات الدخول غير صحيحة';
-        
+
         if (error.message.includes('Invalid login credentials')) {
           errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
         } else if (error.message.includes('Email not confirmed')) {
@@ -59,11 +59,11 @@ const HomePage = () => {
 
       if (data.user) {
         // Check if user has completed profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name_ar, role_id')
-          .eq('id', data.user.id)
-          .single();
+        const { data: profile } = await supabase.
+        from('profiles').
+        select('full_name_ar, role_id').
+        eq('id', data.user.id).
+        single();
 
         toast({
           title: 'تم تسجيل الدخول بنجاح',

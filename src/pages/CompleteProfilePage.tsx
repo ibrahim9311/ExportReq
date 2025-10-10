@@ -43,15 +43,15 @@ const CompleteProfilePage = () => {
 
   const fetchRolesAndCountries = async () => {
     try {
-      const { data: rolesData } = await supabase
-        .from('roles')
-        .select('id, name')
-        .order('name');
-      
-      const { data: countriesData } = await supabase
-        .from('countries')
-        .select('id, name_ar')
-        .order('name_ar');
+      const { data: rolesData } = await supabase.
+      from('roles').
+      select('id, name').
+      order('name');
+
+      const { data: countriesData } = await supabase.
+      from('countries').
+      select('id, name_ar').
+      order('name_ar');
 
       if (rolesData) setRoles(rolesData);
       if (countriesData) setCountries(countriesData);
@@ -74,11 +74,11 @@ const CompleteProfilePage = () => {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name_ar')
-        .eq('id', user.id)
-        .single();
+      const { data: profile } = await supabase.
+      from('profiles').
+      select('full_name_ar').
+      eq('id', user.id).
+      single();
 
       if (profile?.full_name_ar) {
         toast({
@@ -181,21 +181,21 @@ const CompleteProfilePage = () => {
         throw new Error('User not found');
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          username_en: user.user_metadata?.username_en || user.email?.split('@')[0] || '',
-          full_name_ar: formData.full_name_ar.trim(),
-          phone_number: formData.phone_number.trim(),
-          birth_date: formData.birth_date,
-          company_name: formData.company_name.trim(),
-          role_id: parseInt(formData.role_id),
-          is_active: true,
-          created_at: new Date().toISOString()
-        }, {
-          onConflict: 'id'
-        });
+      const { error } = await supabase.
+      from('profiles').
+      upsert({
+        id: userId,
+        username_en: user.user_metadata?.username_en || user.email?.split('@')[0] || '',
+        full_name_ar: formData.full_name_ar.trim(),
+        phone_number: formData.phone_number.trim(),
+        birth_date: formData.birth_date,
+        company_name: formData.company_name.trim(),
+        role_id: parseInt(formData.role_id),
+        is_active: true,
+        created_at: new Date().toISOString()
+      }, {
+        onConflict: 'id'
+      });
 
       if (error) throw error;
 
@@ -224,8 +224,8 @@ const CompleteProfilePage = () => {
           <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mx-auto" />
           <p className="mt-4 text-gray-600">جاري التحقق...</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -254,8 +254,8 @@ const CompleteProfilePage = () => {
                   value={formData.full_name_ar}
                   onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })}
                   className="text-right"
-                  placeholder="أدخل اسمك الكامل بالعربية"
-                />
+                  placeholder="أدخل اسمك الكامل بالعربية" />
+
               </div>
 
               <div>
@@ -269,8 +269,8 @@ const CompleteProfilePage = () => {
                   value={formData.phone_number}
                   onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                   className="text-right"
-                  placeholder="05xxxxxxxx"
-                />
+                  placeholder="05xxxxxxxx" />
+
               </div>
 
               <div>
@@ -283,8 +283,8 @@ const CompleteProfilePage = () => {
                   required
                   value={formData.birth_date}
                   onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                  className="text-right"
-                />
+                  className="text-right" />
+
               </div>
 
               <div>
@@ -298,8 +298,8 @@ const CompleteProfilePage = () => {
                   value={formData.company_name}
                   onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   className="text-right"
-                  placeholder="أدخل اسم شركتك"
-                />
+                  placeholder="أدخل اسم شركتك" />
+
               </div>
 
               <div>
@@ -314,11 +314,11 @@ const CompleteProfilePage = () => {
                     <SelectValue placeholder="اختر الدور الوظيفي" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id.toString()}>
+                    {roles.map((role) =>
+                    <SelectItem key={role.id} value={role.id.toString()}>
                         {role.name}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -334,11 +334,11 @@ const CompleteProfilePage = () => {
                     <SelectValue placeholder="اختر الدولة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.id} value={country.id.toString()}>
+                    {countries.map((country) =>
+                    <SelectItem key={country.id} value={country.id.toString()}>
                         {country.name_ar}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -354,8 +354,8 @@ const CompleteProfilePage = () => {
           </form>
         </div>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default CompleteProfilePage;

@@ -35,11 +35,11 @@ const AuthSuccessPage = () => {
       const user = session.user;
 
       // Check if profile exists
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const { data: profile, error: profileError } = await supabase.
+      from('profiles').
+      select('*').
+      eq('id', user.id).
+      single();
 
       if (profileError && profileError.code !== 'PGRST116') {
         console.error('Profile error:', profileError);
@@ -47,16 +47,16 @@ const AuthSuccessPage = () => {
 
       // If profile doesn't exist, create it
       if (!profile) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: user.id,
-            username_en: user.user_metadata?.username_en || '',
-            email: user.email,
-            role_id: 1,
-            is_active: true,
-            created_at: new Date().toISOString()
-          }]);
+        const { error: insertError } = await supabase.
+        from('profiles').
+        insert([{
+          id: user.id,
+          username_en: user.user_metadata?.username_en || '',
+          email: user.email,
+          role_id: 1,
+          is_active: true,
+          created_at: new Date().toISOString()
+        }]);
 
         if (insertError) {
           console.error('Error creating profile:', insertError);
@@ -64,10 +64,10 @@ const AuthSuccessPage = () => {
         }
       } else if (!profile.is_active) {
         // Activate the profile
-        await supabase
-          .from('profiles')
-          .update({ is_active: true })
-          .eq('id', user.id);
+        await supabase.
+        from('profiles').
+        update({ is_active: true }).
+        eq('id', user.id);
       }
 
       setStatus('success');
@@ -91,7 +91,7 @@ const AuthSuccessPage = () => {
       console.error('Auth callback error:', error);
       setStatus('error');
       setMessage(error.message || 'حدث خطأ أثناء التحقق من حسابك');
-      
+
       toast({
         variant: 'destructive',
         title: 'خطأ',
@@ -106,44 +106,44 @@ const AuthSuccessPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+        className="w-full max-w-md">
+
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center">
-            {status === 'loading' && (
-              <>
+            {status === 'loading' &&
+            <>
                 <Loader2 className="w-16 h-16 text-indigo-600 animate-spin mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">جاري التحقق</h1>
                 <p className="text-gray-600">{message}</p>
               </>
-            )}
+            }
 
-            {status === 'success' && (
-              <>
+            {status === 'success' &&
+            <>
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">تم بنجاح!</h1>
                 <p className="text-gray-600">{message}</p>
               </>
-            )}
+            }
 
-            {status === 'error' && (
-              <>
+            {status === 'error' &&
+            <>
                 <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">حدث خطأ</h1>
                 <p className="text-gray-600 mb-6">{message}</p>
                 <Button
-                  onClick={() => navigate('/')}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                >
+                onClick={() => navigate('/')}
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+
                   العودة إلى تسجيل الدخول
                 </Button>
               </>
-            )}
+            }
           </div>
         </div>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default AuthSuccessPage;

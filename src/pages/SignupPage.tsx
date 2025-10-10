@@ -145,7 +145,7 @@ const SignupPage = () => {
 
       if (error) {
         console.error('Signup error:', error);
-        
+
         // Handle specific error cases
         if (error.message.includes('already registered') || error.message.includes('User already registered')) {
           toast({
@@ -161,16 +161,16 @@ const SignupPage = () => {
 
       if (data.user) {
         // Create profile entry with minimal info
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{
-            id: data.user.id,
-            username_en: formData.username.trim(),
-            email: formData.email.trim(),
-            role_id: 1,
-            is_active: false,
-            created_at: new Date().toISOString()
-          }]);
+        const { error: profileError } = await supabase.
+        from('profiles').
+        insert([{
+          id: data.user.id,
+          username_en: formData.username.trim(),
+          email: formData.email.trim(),
+          role_id: 1,
+          is_active: false,
+          created_at: new Date().toISOString()
+        }]);
 
         if (profileError) {
           console.error('Error creating profile:', profileError);

@@ -16,8 +16,8 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+  PaginationPrevious } from
+'@/components/ui/pagination';
 
 interface Country {
   id: number;
@@ -88,9 +88,9 @@ const SearchPage = () => {
   const loadFilters = async () => {
     try {
       const [countriesRes, cropsRes] = await Promise.all([
-        supabase.from('countries').select('*').order('name_ar'),
-        supabase.from('crops').select('*').order('name_ar'),
-      ]);
+      supabase.from('countries').select('*').order('name_ar'),
+      supabase.from('crops').select('*').order('name_ar')]
+      );
 
       if (countriesRes.error) throw countriesRes.error;
       if (cropsRes.error) throw cropsRes.error;
@@ -101,7 +101,7 @@ const SearchPage = () => {
       toast({
         title: 'خطأ',
         description: error.message || 'فشل تحميل خيارات البحث',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setLoadingFilters(false);
@@ -120,7 +120,7 @@ const SearchPage = () => {
       toast({
         title: 'خطأ',
         description: error.message || 'فشل البحث',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -128,9 +128,9 @@ const SearchPage = () => {
   };
 
   const searchRequirements = async () => {
-    let query = supabase
-      .from('export_requirements')
-      .select('*, countries(*), crops(*)', { count: 'exact' });
+    let query = supabase.
+    from('export_requirements').
+    select('*, countries(*), crops(*)', { count: 'exact' });
 
     // Apply filters
     if (selectedCountry !== 'all') {
@@ -159,9 +159,9 @@ const SearchPage = () => {
   };
 
   const searchSummaries = async () => {
-    let query = supabase
-      .from('summaries')
-      .select('*', { count: 'exact' });
+    let query = supabase.
+    from('summaries').
+    select('*', { count: 'exact' });
 
     if (keyword.trim()) {
       query = query.or(`summary_text.ilike.%${keyword}%,notes.ilike.%${keyword}%`);
@@ -214,29 +214,29 @@ const SearchPage = () => {
           <PaginationItem>
             <PaginationPrevious
               onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-            />
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+
           </PaginationItem>
-          {pages.map((page) => (
-            <PaginationItem key={page}>
+          {pages.map((page) =>
+          <PaginationItem key={page}>
               <PaginationLink
-                onClick={() => setCurrentPage(page)}
-                isActive={currentPage === page}
-                className="cursor-pointer"
-              >
+              onClick={() => setCurrentPage(page)}
+              isActive={currentPage === page}
+              className="cursor-pointer">
+
                 {page}
               </PaginationLink>
             </PaginationItem>
-          ))}
+          )}
           <PaginationItem>
             <PaginationNext
               onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-            />
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+
           </PaginationItem>
         </PaginationContent>
-      </Pagination>
-    );
+      </Pagination>);
+
   };
 
   return (
@@ -267,8 +267,8 @@ const SearchPage = () => {
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                     placeholder="ابحث هنا..."
-                    className="pr-10"
-                  />
+                    className="pr-10" />
+
                 </div>
               </div>
 
@@ -281,11 +281,11 @@ const SearchPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">جميع الدول</SelectItem>
-                    {countries.map((country) => (
-                      <SelectItem key={country.id} value={country.id.toString()}>
+                    {countries.map((country) =>
+                    <SelectItem key={country.id} value={country.id.toString()}>
                         {country.name_ar}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -299,25 +299,25 @@ const SearchPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">جميع المحاصيل</SelectItem>
-                    {crops.map((crop) => (
-                      <SelectItem key={crop.id} value={crop.id.toString()}>
+                    {crops.map((crop) =>
+                    <SelectItem key={crop.id} value={crop.id.toString()}>
                         {crop.name_ar}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             {/* Clear Filters Button */}
-            {(keyword || selectedCountry !== 'all' || selectedCrop !== 'all') && (
-              <div className="mt-4">
+            {(keyword || selectedCountry !== 'all' || selectedCrop !== 'all') &&
+            <div className="mt-4">
                 <Button variant="outline" onClick={clearFilters} className="gap-2">
                   <X className="w-4 h-4" />
                   مسح الفلاتر
                 </Button>
               </div>
-            )}
+            }
           </CardContent>
         </Card>
 
@@ -330,10 +330,10 @@ const SearchPage = () => {
 
           {/* Requirements Tab */}
           <TabsContent value="requirements" className="mt-6">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i}>
+            {loading ?
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) =>
+              <Card key={i}>
                     <CardHeader>
                       <Skeleton className="h-6 w-3/4 mb-2" />
                       <Skeleton className="h-4 w-1/2" />
@@ -342,21 +342,21 @@ const SearchPage = () => {
                       <Skeleton className="h-20 w-full" />
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : requirements.length === 0 ? (
-              <Alert>
+              )}
+              </div> :
+            requirements.length === 0 ?
+            <Alert>
                 <AlertDescription>لا توجد نتائج مطابقة لعملية البحث</AlertDescription>
-              </Alert>
-            ) : (
-              <>
+              </Alert> :
+
+            <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {requirements.map((req) => (
-                    <Card
-                      key={req.id}
-                      className="hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={() => openDetails(req)}
-                    >
+                  {requirements.map((req) =>
+                <Card
+                  key={req.id}
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => openDetails(req)}>
+
                       <CardHeader>
                         <CardTitle className="text-lg flex items-start gap-2">
                           <FileText className="w-5 h-5 mt-1 flex-shrink-0 text-indigo-600" />
@@ -365,36 +365,36 @@ const SearchPage = () => {
                           </span>
                         </CardTitle>
                         <CardDescription className="flex items-center gap-2">
-                          {req.publication_number && (
-                            <span className="text-xs">رقم النشر: {req.publication_number}</span>
-                          )}
+                          {req.publication_number &&
+                      <span className="text-xs">رقم النشر: {req.publication_number}</span>
+                      }
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <p className="text-sm text-gray-600 line-clamp-3">
                           {req.full_requirements || 'لا يوجد وصف'}
                         </p>
-                        {req.publication_year && (
-                          <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
+                        {req.publication_year &&
+                    <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
                             <Calendar className="w-3 h-3" />
                             {req.publication_year}
                           </div>
-                        )}
+                    }
                       </CardContent>
                     </Card>
-                  ))}
+                )}
                 </div>
                 {renderPagination()}
               </>
-            )}
+            }
           </TabsContent>
 
           {/* Summaries Tab */}
           <TabsContent value="summaries" className="mt-6">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
-                  <Card key={i}>
+            {loading ?
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) =>
+              <Card key={i}>
                     <CardHeader>
                       <Skeleton className="h-6 w-3/4" />
                     </CardHeader>
@@ -402,21 +402,21 @@ const SearchPage = () => {
                       <Skeleton className="h-24 w-full" />
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : summaries.length === 0 ? (
-              <Alert>
+              )}
+              </div> :
+            summaries.length === 0 ?
+            <Alert>
                 <AlertDescription>لا توجد نتائج مطابقة لعملية البحث</AlertDescription>
-              </Alert>
-            ) : (
-              <>
+              </Alert> :
+
+            <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {summaries.map((summary) => (
-                    <Card
-                      key={summary.id}
-                      className="hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={() => openDetails(summary)}
-                    >
+                  {summaries.map((summary) =>
+                <Card
+                  key={summary.id}
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => openDetails(summary)}>
+
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center gap-2">
                           <FileText className="w-5 h-5 text-indigo-600" />
@@ -429,11 +429,11 @@ const SearchPage = () => {
                         </p>
                       </CardContent>
                     </Card>
-                  ))}
+                )}
                 </div>
                 {renderPagination()}
               </>
-            )}
+            }
           </TabsContent>
         </Tabs>
 
@@ -448,82 +448,82 @@ const SearchPage = () => {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              {selectedItem && 'countries' in selectedItem
-                ? `${selectedItem.countries?.name_ar || 'غير محدد'} - ${selectedItem.crops?.name_ar || 'غير محدد'}`
-                : `ملخص #${selectedItem?.id}`}
+              {selectedItem && 'countries' in selectedItem ?
+              `${selectedItem.countries?.name_ar || 'غير محدد'} - ${selectedItem.crops?.name_ar || 'غير محدد'}` :
+              `ملخص #${selectedItem?.id}`}
             </DialogTitle>
             <DialogDescription>تفاصيل كاملة</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {selectedItem && 'countries' in selectedItem ? (
-              // Requirement Details
-              <>
-                {selectedItem.publication_number && (
-                  <div>
+            {selectedItem && 'countries' in selectedItem ?
+            // Requirement Details
+            <>
+                {selectedItem.publication_number &&
+              <div>
                     <h3 className="font-semibold mb-1">رقم النشر</h3>
                     <p className="text-gray-600">{selectedItem.publication_number}</p>
                   </div>
-                )}
-                {selectedItem.publication_year && (
-                  <div>
+              }
+                {selectedItem.publication_year &&
+              <div>
                     <h3 className="font-semibold mb-1">سنة النشر</h3>
                     <p className="text-gray-600">{selectedItem.publication_year}</p>
                   </div>
-                )}
-                {selectedItem.full_requirements && (
-                  <div>
+              }
+                {selectedItem.full_requirements &&
+              <div>
                     <h3 className="font-semibold mb-1">الاشتراطات الكاملة</h3>
                     <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.full_requirements}</p>
                   </div>
-                )}
-                {selectedItem.notes && (
-                  <div>
+              }
+                {selectedItem.notes &&
+              <div>
                     <h3 className="font-semibold mb-1">ملاحظات</h3>
                     <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.notes}</p>
                   </div>
-                )}
-                {selectedItem.pdf_file_url && (
-                  <div>
+              }
+                {selectedItem.pdf_file_url &&
+              <div>
                     <Button
-                      onClick={() => window.open(selectedItem.pdf_file_url!, '_blank')}
-                      className="gap-2"
-                    >
+                  onClick={() => window.open(selectedItem.pdf_file_url!, '_blank')}
+                  className="gap-2">
+
                       <Download className="w-4 h-4" />
                       تحميل ملف PDF
                     </Button>
                   </div>
-                )}
-                {selectedItem.created_at && (
-                  <div className="text-sm text-gray-500 pt-4 border-t">
+              }
+                {selectedItem.created_at &&
+              <div className="text-sm text-gray-500 pt-4 border-t">
                     تاريخ الإضافة: {new Date(selectedItem.created_at).toLocaleDateString('ar-SA')}
                   </div>
-                )}
-              </>
-            ) : (
-              // Summary Details
-              selectedItem && (
-                <>
-                  {'summary_text' in selectedItem && selectedItem.summary_text && (
-                    <div>
+              }
+              </> :
+
+            // Summary Details
+            selectedItem &&
+            <>
+                  {'summary_text' in selectedItem && selectedItem.summary_text &&
+              <div>
                       <h3 className="font-semibold mb-1">نص الملخص</h3>
                       <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.summary_text}</p>
                     </div>
-                  )}
-                  {'notes' in selectedItem && selectedItem.notes && (
-                    <div>
+              }
+                  {'notes' in selectedItem && selectedItem.notes &&
+              <div>
                       <h3 className="font-semibold mb-1">ملاحظات</h3>
                       <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.notes}</p>
                     </div>
-                  )}
+              }
                 </>
-              )
-            )}
+
+            }
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default SearchPage;

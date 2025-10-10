@@ -56,15 +56,15 @@ const ProfilePage = () => {
 
   const fetchRolesAndCountries = async () => {
     try {
-      const { data: rolesData } = await supabase
-        .from('roles')
-        .select('id, name')
-        .order('name');
-      
-      const { data: countriesData } = await supabase
-        .from('countries')
-        .select('id, name_ar')
-        .order('name_ar');
+      const { data: rolesData } = await supabase.
+      from('roles').
+      select('id, name').
+      order('name');
+
+      const { data: countriesData } = await supabase.
+      from('countries').
+      select('id, name_ar').
+      order('name_ar');
 
       if (rolesData) setRoles(rolesData);
       if (countriesData) setCountries(countriesData);
@@ -87,11 +87,11 @@ const ProfilePage = () => {
         return;
       }
 
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const { data: profileData, error } = await supabase.
+      from('profiles').
+      select('*').
+      eq('id', user.id).
+      single();
 
       if (error) throw error;
 
@@ -177,16 +177,16 @@ const ProfilePage = () => {
     setSaving(true);
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name_ar: formData.full_name_ar.trim(),
-          phone_number: formData.phone_number.trim(),
-          birth_date: formData.birth_date,
-          company_name: formData.company_name.trim(),
-          role_id: parseInt(formData.role_id)
-        })
-        .eq('id', profile.id);
+      const { error } = await supabase.
+      from('profiles').
+      update({
+        full_name_ar: formData.full_name_ar.trim(),
+        phone_number: formData.phone_number.trim(),
+        birth_date: formData.birth_date,
+        company_name: formData.company_name.trim(),
+        role_id: parseInt(formData.role_id)
+      }).
+      eq('id', profile.id);
 
       if (error) throw error;
 
@@ -229,8 +229,8 @@ const ProfilePage = () => {
           <Loader2 className="h-12 w-12 animate-spin text-indigo-600 mx-auto" />
           <p className="mt-4 text-gray-600">جاري تحميل البيانات...</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (!profile) {
@@ -248,11 +248,11 @@ const ProfilePage = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
-  const roleName = roles.find(r => r.id === profile.role_id)?.name || 'غير محدد';
+  const roleName = roles.find((r) => r.id === profile.role_id)?.name || 'غير محدد';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 py-8" dir="rtl">
@@ -287,13 +287,13 @@ const ProfilePage = () => {
           <CardContent className="p-8">
             <div className="mb-6 flex justify-between items-center">
               <h3 className="text-lg font-semibold text-gray-700">المعلومات الأساسية</h3>
-              {!editing ? (
-                <Button onClick={() => setEditing(true)} variant="outline" size="sm" className="gap-2">
+              {!editing ?
+              <Button onClick={() => setEditing(true)} variant="outline" size="sm" className="gap-2">
                   <Edit2 className="w-4 h-4" />
                   تعديل البيانات
-                </Button>
-              ) : (
-                <div className="flex gap-2">
+                </Button> :
+
+              <div className="flex gap-2">
                   <Button onClick={handleSave} size="sm" disabled={saving} className="gap-2">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     حفظ
@@ -303,26 +303,26 @@ const ProfilePage = () => {
                     إلغاء
                   </Button>
                 </div>
-              )}
+              }
             </div>
 
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label className="text-right block mb-2 text-gray-700">الاسم الكامل</Label>
-                  {editing ? (
-                    <Input
-                      type="text"
-                      value={formData.full_name_ar}
-                      onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })}
-                      className="text-right"
-                      placeholder="أدخل اسمك الكامل"
-                    />
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg text-right">
+                  {editing ?
+                  <Input
+                    type="text"
+                    value={formData.full_name_ar}
+                    onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })}
+                    className="text-right"
+                    placeholder="أدخل اسمك الكامل" /> :
+
+
+                  <div className="p-3 bg-gray-50 rounded-lg text-right">
                       {profile.full_name_ar || 'غير محدد'}
                     </div>
-                  )}
+                  }
                 </div>
 
                 <div>
@@ -334,76 +334,76 @@ const ProfilePage = () => {
 
                 <div>
                   <Label className="text-right block mb-2 text-gray-700">رقم الهاتف</Label>
-                  {editing ? (
-                    <Input
-                      type="tel"
-                      value={formData.phone_number}
-                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                      className="text-right"
-                      placeholder="05xxxxxxxx"
-                    />
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg text-right">
+                  {editing ?
+                  <Input
+                    type="tel"
+                    value={formData.phone_number}
+                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                    className="text-right"
+                    placeholder="05xxxxxxxx" /> :
+
+
+                  <div className="p-3 bg-gray-50 rounded-lg text-right">
                       {profile.phone_number || 'غير محدد'}
                     </div>
-                  )}
+                  }
                 </div>
 
                 <div>
                   <Label className="text-right block mb-2 text-gray-700">تاريخ الميلاد</Label>
-                  {editing ? (
-                    <Input
-                      type="date"
-                      value={formData.birth_date}
-                      onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                      className="text-right"
-                    />
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg text-right">
+                  {editing ?
+                  <Input
+                    type="date"
+                    value={formData.birth_date}
+                    onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
+                    className="text-right" /> :
+
+
+                  <div className="p-3 bg-gray-50 rounded-lg text-right">
                       {profile.birth_date ? new Date(profile.birth_date).toLocaleDateString('ar-SA') : 'غير محدد'}
                     </div>
-                  )}
+                  }
                 </div>
 
                 <div>
                   <Label className="text-right block mb-2 text-gray-700">اسم الشركة</Label>
-                  {editing ? (
-                    <Input
-                      type="text"
-                      value={formData.company_name}
-                      onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                      className="text-right"
-                      placeholder="أدخل اسم الشركة"
-                    />
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg text-right">
+                  {editing ?
+                  <Input
+                    type="text"
+                    value={formData.company_name}
+                    onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                    className="text-right"
+                    placeholder="أدخل اسم الشركة" /> :
+
+
+                  <div className="p-3 bg-gray-50 rounded-lg text-right">
                       {profile.company_name || 'غير محدد'}
                     </div>
-                  )}
+                  }
                 </div>
 
                 <div>
                   <Label className="text-right block mb-2 text-gray-700">الدور الوظيفي</Label>
-                  {editing ? (
-                    <Select
-                      value={formData.role_id}
-                      onValueChange={(value) => setFormData({ ...formData, role_id: value })}>
+                  {editing ?
+                  <Select
+                    value={formData.role_id}
+                    onValueChange={(value) => setFormData({ ...formData, role_id: value })}>
                       <SelectTrigger className="text-right">
                         <SelectValue placeholder="اختر الدور الوظيفي" />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.id} value={role.id.toString()}>
+                        {roles.map((role) =>
+                      <SelectItem key={role.id} value={role.id.toString()}>
                             {role.name}
                           </SelectItem>
-                        ))}
+                      )}
                       </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-lg text-right">
+                    </Select> :
+
+                  <div className="p-3 bg-gray-50 rounded-lg text-right">
                       {roleName}
                     </div>
-                  )}
+                  }
                 </div>
               </div>
 
@@ -427,8 +427,8 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ProfilePage;
