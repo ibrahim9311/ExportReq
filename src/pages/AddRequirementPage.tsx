@@ -172,12 +172,18 @@ const AddRequirementPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8" dir="rtl">
       <div className="max-w-4xl mx-auto">
         <Card className="p-6 md:p-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
             <h1 className="text-2xl md:text-3xl font-bold text-indigo-900">تسجيل اشتراط جديد</h1>
-            <Button variant="outline" onClick={() => navigate('/dashboard')} className="gap-2">
-              <ArrowRight className="w-4 h-4" />
-              العودة
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/view-requirements')} className="gap-2">
+                <ArrowRight className="w-4 h-4" />
+                عرض التسجيلات
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/dashboard')} className="gap-2">
+                <ArrowRight className="w-4 h-4" />
+                لوحة التحكم
+              </Button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -308,13 +314,6 @@ const AddRequirementPage = () => {
                     إضافة الاشتراط
                   </>
                 }
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/view-requirements')}>
-
-                عرض التسجيلات
               </Button>
             </div>
           </form>

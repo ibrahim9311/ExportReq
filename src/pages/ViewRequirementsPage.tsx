@@ -313,14 +313,14 @@ const ViewRequirementsPage = () => {
         <Card className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-indigo-900">عرض التسجيلات</h1>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button onClick={() => navigate('/add-requirement')} className="gap-2">
                 <Plus className="w-4 h-4" />
                 إضافة اشتراط
               </Button>
               <Button variant="outline" onClick={() => navigate('/dashboard')} className="gap-2">
                 <ArrowRight className="w-4 h-4" />
-                العودة
+                لوحة التحكم
               </Button>
             </div>
           </div>

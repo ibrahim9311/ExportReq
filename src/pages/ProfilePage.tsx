@@ -263,7 +263,7 @@ const ProfilePage = () => {
         className="max-w-4xl mx-auto">
         <Card className="shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-3 rounded-full">
                   <User className="w-6 h-6" />
@@ -277,9 +277,9 @@ const ProfilePage = () => {
                 onClick={() => navigate('/dashboard')}
                 variant="outline"
                 size="sm"
-                className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/30">
+                className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/30 transition-all">
                 <ArrowRight className="w-4 h-4" />
-                العودة
+                العودة للوحة التحكم
               </Button>
             </div>
           </CardHeader>

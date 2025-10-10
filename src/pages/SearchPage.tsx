@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Search, FileText, Filter, X, Download, Calendar } from 'lucide-react';
+import { Search, FileText, Filter, X, Download, Calendar, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import {
   Pagination,
   PaginationContent,
@@ -54,6 +55,7 @@ interface Summary {
 const ITEMS_PER_PAGE = 12;
 
 const SearchPage = () => {
+  const navigate = useNavigate();
   const [searchType, setSearchType] = useState<'requirements' | 'summaries'>('requirements');
   const [keyword, setKeyword] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
@@ -242,6 +244,18 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
+        {/* Back to Main Menu Button */}
+        <div className="mb-6">
+          <Button
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="gap-2 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors"
+          >
+            <Home className="w-4 h-4" />
+            العودة إلى القائمة الرئيسية
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-indigo-900 mb-2">البحث في الاشتراطات</h1>
