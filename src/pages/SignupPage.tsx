@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -8,12 +8,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -22,15 +20,9 @@ const SignupPage = () => {
     password: '',
     confirmPassword: ''
   });
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Get reCAPTCHA site key from environment variables
-  // IMPORTANT: This implementation uses reCAPTCHA v2 Checkbox
-  // Make sure your keys are for v2 Checkbox type
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LfOiuUrAAAAAGsNyqsNSb5PPXGiBKROd9PTnW6G';
 
   const calculatePasswordStrength = (password: string): number => {
     let strength = 0;
@@ -46,18 +38,6 @@ const SignupPage = () => {
   useEffect(() => {
     setPasswordStrength(calculatePasswordStrength(formData.password));
   }, [formData.password]);
-
-  const handleRecaptchaChange = (token: string | null) => {
-    setRecaptchaToken(token);
-    if (token) {
-      // Clear reCAPTCHA error if token is received
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.recaptcha;
-        return newErrors;
-      });
-    }
-  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -86,10 +66,6 @@ const SignupPage = () => {
 
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'كلمة المرور غير متطابقة';
-    }
-
-    if (!recaptchaToken) {
-      newErrors.recaptcha = 'يرجى إكمال التحقق من reCAPTCHA';
     }
 
     if (!termsAgreed) {
@@ -163,8 +139,7 @@ const SignupPage = () => {
         password: formData.password,
         options: {
           data: {
-            username_en: formData.username,
-            recaptcha_token: recaptchaToken
+            username_en: formData.username
           },
           emailRedirectTo: `${window.location.origin}/complete-profile`
         }
@@ -178,12 +153,6 @@ const SignupPage = () => {
           description: 'الرجاء التحقق من بريدك الإلكتروني لتفعيل الحساب'
         });
 
-        // Reset reCAPTCHA
-        if (recaptchaRef.current) {
-          recaptchaRef.current.reset();
-        }
-        setRecaptchaToken(null);
-
         setTimeout(() => navigate('/'), 2000);
       }
     } catch (error: any) {
@@ -192,12 +161,6 @@ const SignupPage = () => {
         title: 'خطأ في إنشاء الحساب',
         description: error.message || 'حدث خطأ أثناء إنشاء الحساب'
       });
-
-      // Reset reCAPTCHA on error
-      if (recaptchaRef.current) {
-        recaptchaRef.current.reset();
-      }
-      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -214,35 +177,6 @@ const SignupPage = () => {
     if (passwordStrength < 60) return 'متوسطة';
     return 'قوية';
   };
-
-  // Show warning if reCAPTCHA site key is not configured
-  if (!RECAPTCHA_SITE_KEY) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-100 via-orange-50 to-yellow-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md text-center">
-          <div className="text-red-500 text-5xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">تكوين reCAPTCHA مطلوب</h1>
-          <p className="text-gray-600 mb-6" dir="rtl">
-            لم يتم تكوين مفتاح موقع Google reCAPTCHA. يرجى إضافة المتغير التالي إلى ملف البيئة الخاص بك:
-          </p>
-          <div className="bg-gray-100 p-4 rounded-lg text-left">
-            <code className="text-sm">VITE_RECAPTCHA_SITE_KEY=your_site_key_here</code>
-          </div>
-          <p className="text-sm text-gray-500 mt-4" dir="rtl">
-            للحصول على مفاتيح reCAPTCHA، قم بزيارة:{' '}
-            <a
-              href="https://www.google.com/recaptcha/admin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline">
-
-              Google reCAPTCHA Admin
-            </a>
-          </p>
-        </div>
-      </div>);
-
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4" dir="rtl">
@@ -342,24 +276,6 @@ const SignupPage = () => {
               {errors.confirmPassword && <p className="text-red-500 text-sm mt-1 text-right">{errors.confirmPassword}</p>}
             </div>
 
-            {/* reCAPTCHA Widget */}
-            <div className="flex justify-center my-4">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={RECAPTCHA_SITE_KEY}
-                onChange={handleRecaptchaChange}
-                onExpired={() => setRecaptchaToken(null)}
-                onErrored={() => {
-                  setRecaptchaToken(null);
-                  toast({
-                    variant: 'destructive',
-                    title: 'خطأ في reCAPTCHA',
-                    description: 'فشل تحميل reCAPTCHA. يرجى تحديث الصفحة والمحاولة مرة أخرى.'
-                  });
-                }} />
-
-            </div>
-            {errors.recaptcha && <p className="text-red-500 text-sm text-center">{errors.recaptcha}</p>}
             <div className="flex items-center space-x-2 space-x-reverse">
               <Checkbox
                 id="terms"
@@ -378,7 +294,7 @@ const SignupPage = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white mt-6"
-              disabled={loading || !recaptchaToken}>
+              disabled={loading}>
 
               {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
             </Button>
