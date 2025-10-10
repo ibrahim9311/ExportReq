@@ -17,8 +17,8 @@ const AddRequirementPage = () => {
           العودة للوحة التحكم
         </Button>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default AddRequirementPage;

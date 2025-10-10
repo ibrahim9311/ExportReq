@@ -17,8 +17,8 @@ const ProfilePage = () => {
           العودة للوحة التحكم
         </Button>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ProfilePage;

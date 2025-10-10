@@ -17,8 +17,8 @@ const SearchPage = () => {
           العودة للوحة التحكم
         </Button>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default SearchPage;

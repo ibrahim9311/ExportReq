@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const SignupPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -20,10 +22,13 @@ const SignupPage = () => {
     password: '',
     confirmPassword: ''
   });
-  const [humanVerified, setHumanVerified] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Get reCAPTCHA site key from environment variables
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
   const calculatePasswordStrength = (password: string): number => {
     let strength = 0;
@@ -39,6 +44,18 @@ const SignupPage = () => {
   useEffect(() => {
     setPasswordStrength(calculatePasswordStrength(formData.password));
   }, [formData.password]);
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+    if (token) {
+      // Clear reCAPTCHA error if token is received
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.recaptcha;
+        return newErrors;
+      });
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -69,8 +86,8 @@ const SignupPage = () => {
       newErrors.confirmPassword = 'كلمة المرور غير متطابقة';
     }
 
-    if (!humanVerified) {
-      newErrors.human = 'يرجى التحقق من أنك لست روبوت';
+    if (!recaptchaToken) {
+      newErrors.recaptcha = 'يرجى إكمال التحقق من reCAPTCHA';
     }
 
     if (!termsAgreed) {
@@ -83,22 +100,22 @@ const SignupPage = () => {
 
   const checkExistingUser = async (): Promise<boolean> => {
     try {
-      const { data: existingUsername } = await supabase
-        .from('profiles')
-        .select('username_en')
-        .eq('username_en', formData.username)
-        .single();
+      const { data: existingUsername } = await supabase.
+      from('profiles').
+      select('username_en').
+      eq('username_en', formData.username).
+      single();
 
       if (existingUsername) {
-        setErrors(prev => ({ ...prev, username: 'اسم المستخدم مستخدم بالفعل' }));
+        setErrors((prev) => ({ ...prev, username: 'اسم المستخدم مستخدم بالفعل' }));
         return false;
       }
 
-      const { data: existingEmail } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('email', formData.email)
-        .single();
+      const { data: existingEmail } = await supabase.
+      from('profiles').
+      select('email').
+      eq('email', formData.email).
+      single();
 
       if (existingEmail) {
         toast({
@@ -120,7 +137,7 @@ const SignupPage = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast({
         variant: 'destructive',
@@ -131,7 +148,7 @@ const SignupPage = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const userExists = await checkExistingUser();
       if (!userExists) {
@@ -144,7 +161,8 @@ const SignupPage = () => {
         password: formData.password,
         options: {
           data: {
-            username_en: formData.username
+            username_en: formData.username,
+            recaptcha_token: recaptchaToken
           },
           emailRedirectTo: `${window.location.origin}/complete-profile`
         }
@@ -157,7 +175,13 @@ const SignupPage = () => {
           title: 'تم إنشاء الحساب',
           description: 'الرجاء التحقق من بريدك الإلكتروني لتفعيل الحساب'
         });
-        
+
+        // Reset reCAPTCHA
+        if (recaptchaRef.current) {
+          recaptchaRef.current.reset();
+        }
+        setRecaptchaToken(null);
+
         setTimeout(() => navigate('/'), 2000);
       }
     } catch (error: any) {
@@ -166,6 +190,12 @@ const SignupPage = () => {
         title: 'خطأ في إنشاء الحساب',
         description: error.message || 'حدث خطأ أثناء إنشاء الحساب'
       });
+      
+      // Reset reCAPTCHA on error
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -183,14 +213,43 @@ const SignupPage = () => {
     return 'قوية';
   };
 
+  // Show warning if reCAPTCHA site key is not configured
+  if (!RECAPTCHA_SITE_KEY) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-100 via-orange-50 to-yellow-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md text-center">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">تكوين reCAPTCHA مطلوب</h1>
+          <p className="text-gray-600 mb-6" dir="rtl">
+            لم يتم تكوين مفتاح موقع Google reCAPTCHA. يرجى إضافة المتغير التالي إلى ملف البيئة الخاص بك:
+          </p>
+          <div className="bg-gray-100 p-4 rounded-lg text-left">
+            <code className="text-sm">VITE_RECAPTCHA_SITE_KEY=your_site_key_here</code>
+          </div>
+          <p className="text-sm text-gray-500 mt-4" dir="rtl">
+            للحصول على مفاتيح reCAPTCHA، قم بزيارة:{' '}
+            <a 
+              href="https://www.google.com/recaptcha/admin" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Google reCAPTCHA Admin
+            </a>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4" dir="rtl">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+        className="w-full max-w-md">
+
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">إنشاء حساب جديد</h1>
@@ -207,8 +266,8 @@ const SignupPage = () => {
                 value={formData.username}
                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 className="text-right"
-                placeholder="username_en"
-              />
+                placeholder="username_en" />
+
               {errors.username && <p className="text-red-500 text-sm mt-1 text-right">{errors.username}</p>}
             </div>
 
@@ -221,8 +280,8 @@ const SignupPage = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="text-right"
-                placeholder="example@domain.com"
-              />
+                placeholder="example@domain.com" />
+
               {errors.email && <p className="text-red-500 text-sm mt-1 text-right">{errors.email}</p>}
             </div>
 
@@ -235,8 +294,8 @@ const SignupPage = () => {
                 value={formData.confirmEmail}
                 onChange={(e) => setFormData({ ...formData, confirmEmail: e.target.value })}
                 className="text-right"
-                placeholder="example@domain.com"
-              />
+                placeholder="example@domain.com" />
+
               {errors.confirmEmail && <p className="text-red-500 text-sm mt-1 text-right">{errors.confirmEmail}</p>}
             </div>
 
@@ -249,21 +308,21 @@ const SignupPage = () => {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="text-right"
-                placeholder="••••••••"
-              />
-              {formData.password && (
-                <div className="mt-2">
+                placeholder="••••••••" />
+
+              {formData.password &&
+              <div className="mt-2">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs text-gray-600">قوة كلمة المرور: {getStrengthText()}</span>
                   </div>
                   <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-300 ${getStrengthColor()}`}
-                      style={{ width: `${passwordStrength}%` }}
-                    />
+                    <div
+                    className={`h-full transition-all duration-300 ${getStrengthColor()}`}
+                    style={{ width: `${passwordStrength}%` }} />
+
                   </div>
                 </div>
-              )}
+              }
               {errors.password && <p className="text-red-500 text-sm mt-1 text-right">{errors.password}</p>}
             </div>
 
@@ -276,27 +335,36 @@ const SignupPage = () => {
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 className="text-right"
-                placeholder="••••••••"
-              />
+                placeholder="••••••••" />
+
               {errors.confirmPassword && <p className="text-red-500 text-sm mt-1 text-right">{errors.confirmPassword}</p>}
             </div>
 
-            <div className="flex items-center space-x-2 space-x-reverse">
-              <Checkbox 
-                id="human" 
-                checked={humanVerified}
-                onCheckedChange={(checked) => setHumanVerified(checked as boolean)}
+            {/* reCAPTCHA Widget */}
+            <div className="flex justify-center my-4">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={handleRecaptchaChange}
+                onExpired={() => setRecaptchaToken(null)}
+                onErrored={() => {
+                  setRecaptchaToken(null);
+                  toast({
+                    variant: 'destructive',
+                    title: 'خطأ في reCAPTCHA',
+                    description: 'فشل تحميل reCAPTCHA. يرجى تحديث الصفحة والمحاولة مرة أخرى.'
+                  });
+                }}
               />
-              <Label htmlFor="human" className="text-sm cursor-pointer">أنا لست روبوت ✓</Label>
             </div>
-            {errors.human && <p className="text-red-500 text-sm text-right">{errors.human}</p>}
+            {errors.recaptcha && <p className="text-red-500 text-sm text-center">{errors.recaptcha}</p>}
 
             <div className="flex items-center space-x-2 space-x-reverse">
-              <Checkbox 
-                id="terms" 
+              <Checkbox
+                id="terms"
                 checked={termsAgreed}
-                onCheckedChange={(checked) => setTermsAgreed(checked as boolean)}
-              />
+                onCheckedChange={(checked) => setTermsAgreed(checked as boolean)} />
+
               <Label htmlFor="terms" className="text-sm cursor-pointer">
                 أوافق على{' '}
                 <Link to="/policies" className="text-indigo-600 hover:text-indigo-700 underline">
@@ -309,8 +377,8 @@ const SignupPage = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white mt-6"
-              disabled={loading}
-            >
+              disabled={loading || !recaptchaToken}>
+
               {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
             </Button>
           </form>
@@ -325,8 +393,8 @@ const SignupPage = () => {
           </div>
         </div>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default SignupPage;

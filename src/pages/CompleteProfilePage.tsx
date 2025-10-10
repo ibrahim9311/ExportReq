@@ -27,7 +27,7 @@ const CompleteProfilePage = () => {
   const checkAuth = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast({
           variant: 'destructive',
@@ -38,11 +38,11 @@ const CompleteProfilePage = () => {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name_ar')
-        .eq('user_id', user.id)
-        .single();
+      const { data: profile } = await supabase.
+      from('profiles').
+      select('full_name_ar').
+      eq('user_id', user.id).
+      single();
 
       if (profile?.full_name_ar) {
         toast({
@@ -63,7 +63,7 @@ const CompleteProfilePage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!userId) {
       toast({
         variant: 'destructive',
@@ -77,25 +77,25 @@ const CompleteProfilePage = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         throw new Error('User not found');
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: userId,
-          email: user.email,
-          username_en: user.user_metadata?.username_en || '',
-          full_name_ar: formData.full_name_ar,
-          phone_number: formData.phone_number,
-          birth_date: formData.birth_date,
-          company_name: formData.company_name,
-          role_id: 1
-        }, {
-          onConflict: 'user_id'
-        });
+      const { error } = await supabase.
+      from('profiles').
+      upsert({
+        user_id: userId,
+        email: user.email,
+        username_en: user.user_metadata?.username_en || '',
+        full_name_ar: formData.full_name_ar,
+        phone_number: formData.phone_number,
+        birth_date: formData.birth_date,
+        company_name: formData.company_name,
+        role_id: 1
+      }, {
+        onConflict: 'user_id'
+      });
 
       if (error) throw error;
 
@@ -123,8 +123,8 @@ const CompleteProfilePage = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">جاري التحقق...</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -133,8 +133,8 @@ const CompleteProfilePage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+        className="w-full max-w-md">
+
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">إكمال الملف الشخصي</h1>
@@ -151,8 +151,8 @@ const CompleteProfilePage = () => {
                 value={formData.full_name_ar}
                 onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })}
                 className="text-right"
-                placeholder="أدخل اسمك الكامل بالعربية"
-              />
+                placeholder="أدخل اسمك الكامل بالعربية" />
+
             </div>
 
             <div>
@@ -164,8 +164,8 @@ const CompleteProfilePage = () => {
                 value={formData.phone_number}
                 onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                 className="text-right"
-                placeholder="05xxxxxxxx"
-              />
+                placeholder="05xxxxxxxx" />
+
             </div>
 
             <div>
@@ -176,8 +176,8 @@ const CompleteProfilePage = () => {
                 required
                 value={formData.birth_date}
                 onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })}
-                className="text-right"
-              />
+                className="text-right" />
+
             </div>
 
             <div>
@@ -189,22 +189,22 @@ const CompleteProfilePage = () => {
                 value={formData.company_name}
                 onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                 className="text-right"
-                placeholder="أدخل اسم شركتك"
-              />
+                placeholder="أدخل اسم شركتك" />
+
             </div>
 
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white mt-6"
-              disabled={loading}
-            >
+              disabled={loading}>
+
               {loading ? 'جاري الحفظ...' : 'حفظ وإكمال التسجيل'}
             </Button>
           </form>
         </div>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default CompleteProfilePage;

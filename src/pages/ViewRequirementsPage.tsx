@@ -17,8 +17,8 @@ const ViewRequirementsPage = () => {
           العودة للوحة التحكم
         </Button>
       </Card>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ViewRequirementsPage;

@@ -19,7 +19,7 @@ const ForgotPasswordPage = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/reset-password`
       });
 
       if (error) throw error;
@@ -46,44 +46,44 @@ const ForgotPasswordPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+        className="w-full max-w-md">
+
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">نسيت كلمة المرور؟</h1>
             <p className="text-gray-600">سنرسل لك رابط لإعادة تعيين كلمة المرور</p>
           </div>
 
-          {!sent ? (
-            <form onSubmit={handleResetPassword} className="space-y-6">
+          {!sent ?
+          <form onSubmit={handleResetPassword} className="space-y-6">
               <div>
                 <Label htmlFor="email" className="text-right block mb-2">البريد الإلكتروني</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="text-right"
-                  placeholder="example@domain.com"
-                />
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="text-right"
+                placeholder="example@domain.com" />
+
               </div>
 
               <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                disabled={loading}
-              >
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              disabled={loading}>
+
                 {loading ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
               </Button>
-            </form>
-          ) : (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+            </form> :
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
               <p className="text-green-800">
                 تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني
               </p>
             </div>
-          )}
+          }
 
           <div className="mt-6 text-center">
             <Link to="/" className="text-indigo-600 hover:text-indigo-700 font-semibold">
@@ -92,8 +92,8 @@ const ForgotPasswordPage = () => {
           </div>
         </div>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default ForgotPasswordPage;

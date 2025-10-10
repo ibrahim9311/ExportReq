@@ -31,11 +31,11 @@ const DashboardPage = () => {
           return;
         }
 
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('role_id, full_name_ar')
-          .eq('id', user.id)
-          .single();
+        const { data: profileData, error } = await supabase.
+        from('profiles').
+        select('role_id, full_name_ar').
+        eq('id', user.id).
+        single();
 
         if (error) {
           console.error('Error fetching profile:', error);
@@ -61,43 +61,43 @@ const DashboardPage = () => {
   };
 
   const navigationButtons: NavigationButton[] = [
-    {
-      label: 'البحث عن الاشتراطات',
-      path: '/search',
-      icon: <Search className="w-8 h-8" />,
-      roles: [1, 2, 3, 4, 5]
-    },
-    {
-      label: 'تسجيل اشتراط جديد',
-      path: '/add-requirement',
-      icon: <FilePlus className="w-8 h-8" />,
-      roles: [2, 3, 4, 5]
-    },
-    {
-      label: 'عرض التسجيلات',
-      path: '/view-requirements',
-      icon: <FileText className="w-8 h-8" />,
-      roles: [2, 3, 4, 5]
-    },
-    {
-      label: 'الاقتراحات',
-      path: '/suggestions',
-      icon: <MessageSquare className="w-8 h-8" />,
-      roles: [2, 3, 4, 5]
-    },
-    {
-      label: 'التعديل على الاشتراطات',
-      path: '/edit-requirements',
-      icon: <Edit className="w-8 h-8" />,
-      roles: [3, 4, 5]
-    },
-    {
-      label: 'إدارة المستخدمين',
-      path: '/manage-users',
-      icon: <Users className="w-8 h-8" />,
-      roles: [4, 5]
-    }
-  ];
+  {
+    label: 'البحث عن الاشتراطات',
+    path: '/search',
+    icon: <Search className="w-8 h-8" />,
+    roles: [1, 2, 3, 4, 5]
+  },
+  {
+    label: 'تسجيل اشتراط جديد',
+    path: '/add-requirement',
+    icon: <FilePlus className="w-8 h-8" />,
+    roles: [2, 3, 4, 5]
+  },
+  {
+    label: 'عرض التسجيلات',
+    path: '/view-requirements',
+    icon: <FileText className="w-8 h-8" />,
+    roles: [2, 3, 4, 5]
+  },
+  {
+    label: 'الاقتراحات',
+    path: '/suggestions',
+    icon: <MessageSquare className="w-8 h-8" />,
+    roles: [2, 3, 4, 5]
+  },
+  {
+    label: 'التعديل على الاشتراطات',
+    path: '/edit-requirements',
+    icon: <Edit className="w-8 h-8" />,
+    roles: [3, 4, 5]
+  },
+  {
+    label: 'إدارة المستخدمين',
+    path: '/manage-users',
+    icon: <Users className="w-8 h-8" />,
+    roles: [4, 5]
+  }];
+
 
   const hasAccess = (roles: number[]) => {
     return profile && roles.includes(profile.role_id);
@@ -107,8 +107,8 @@ const DashboardPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center" dir="rtl">
         <div className="text-xl text-gray-600">جاري التحميل...</div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -139,13 +139,13 @@ const DashboardPage = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {navigationButtons.map((button) => 
-              hasAccess(button.roles) ? (
-                <Card
-                  key={button.path}
-                  className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white hover:bg-indigo-50 border-2 hover:border-indigo-300"
-                  onClick={() => navigate(button.path)}
-                >
+            {navigationButtons.map((button) =>
+            hasAccess(button.roles) ?
+            <Card
+              key={button.path}
+              className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer bg-white hover:bg-indigo-50 border-2 hover:border-indigo-300"
+              onClick={() => navigate(button.path)}>
+
                   <div className="flex flex-col items-center text-center gap-4">
                     <div className="p-4 bg-indigo-100 rounded-full text-indigo-600">
                       {button.icon}
@@ -154,14 +154,14 @@ const DashboardPage = () => {
                       {button.label}
                     </h3>
                   </div>
-                </Card>
-              ) : null
+                </Card> :
+            null
             )}
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default DashboardPage;
