@@ -9,7 +9,7 @@ type ComboboxOption = { value: string; label: string };
 type ShortRequirement = { id: number; name: string };
 
 const getCachedInitialData = cache(async () => {
-    const supabase = createClient();
+    const supabase = await createClient();
     const [
         { data: countriesData },
         { data: cropsData },

@@ -32,7 +32,7 @@ type Feedback = {
 };
 
 export default async function SuggestionsPage({ searchParams }: PageProps) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 1. Protect the route and check role
   const { data: { session } } = await supabase.auth.getSession();

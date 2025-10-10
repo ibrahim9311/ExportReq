@@ -7,7 +7,7 @@ type Country = { id: number; name_ar: string };
 type Crop = { id: number; name_ar: string };
 
 const getCachedInitialData = cache(async () => {
-    const supabase = createClient();
+    const supabase = await createClient();
     const [
         { data: countriesData },
         { data: cropsData },
