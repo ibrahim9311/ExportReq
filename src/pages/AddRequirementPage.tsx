@@ -233,10 +233,10 @@ const AddRequirementPage = () => {
                             setOpenCountry(false);
                           }}>
                             <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                countryId === country.id.toString() ? 'opacity-100' : 'opacity-0'
-                              )} />
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              countryId === country.id.toString() ? 'opacity-100' : 'opacity-0'
+                            )} />
                             {country.name_ar}
                           </CommandItem>
                         )}
@@ -278,10 +278,10 @@ const AddRequirementPage = () => {
                             setOpenCrop(false);
                           }}>
                             <Check
-                              className={cn(
-                                'mr-2 h-4 w-4',
-                                cropId === crop.id.toString() ? 'opacity-100' : 'opacity-0'
-                              )} />
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              cropId === crop.id.toString() ? 'opacity-100' : 'opacity-0'
+                            )} />
                             {crop.name_ar}
                           </CommandItem>
                         )}

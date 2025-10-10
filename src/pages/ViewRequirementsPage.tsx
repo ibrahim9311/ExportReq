@@ -399,10 +399,10 @@ const ViewRequirementsPage = () => {
                           setOpenCountryFilter(false);
                         }}>
                           <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              filterCountry === country.id ? 'opacity-100' : 'opacity-0'
-                            )} />
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterCountry === country.id ? 'opacity-100' : 'opacity-0'
+                          )} />
                           {country.name_ar}
                         </CommandItem>
                       )}
@@ -452,10 +452,10 @@ const ViewRequirementsPage = () => {
                           setOpenCropFilter(false);
                         }}>
                           <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              filterCrop === crop.id ? 'opacity-100' : 'opacity-0'
-                            )} />
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            filterCrop === crop.id ? 'opacity-100' : 'opacity-0'
+                          )} />
                           {crop.name_ar}
                         </CommandItem>
                       )}

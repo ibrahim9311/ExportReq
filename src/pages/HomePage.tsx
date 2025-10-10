@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { Eye, EyeOff } from 'lucide-react';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({
     emailOrUsername: '',
     password: ''
@@ -31,8 +33,46 @@ const HomePage = () => {
     setLoading(true);
 
     try {
+      const input = credentials.emailOrUsername.trim();
+      let emailToUse = input;
+
+      // Check if input is username (no @ symbol) or email
+      const isEmail = input.includes('@');
+
+      if (!isEmail) {
+        // Input is username, look up email from profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username_en', input)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Profile lookup error:', profileError);
+          toast({
+            variant: 'destructive',
+            title: 'خطأ في تسجيل الدخول',
+            description: 'حدث خطأ أثناء البحث عن اسم المستخدم'
+          });
+          setLoading(false);
+          return;
+        }
+
+        if (!profileData) {
+          toast({
+            variant: 'destructive',
+            title: 'خطأ في تسجيل الدخول',
+            description: 'اسم المستخدم أو كلمة المرور غير صحيحة'
+          });
+          setLoading(false);
+          return;
+        }
+
+        emailToUse = profileData.email;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.emailOrUsername.trim(),
+        email: emailToUse,
         password: credentials.password
       });
 
@@ -42,7 +82,7 @@ const HomePage = () => {
         let errorMessage = 'بيانات الدخول غير صحيحة';
 
         if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+          errorMessage = isEmail ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة' : 'اسم المستخدم أو كلمة المرور غير صحيحة';
         } else if (error.message.includes('Email not confirmed')) {
           errorMessage = 'يرجى تأكيد بريدك الإلكتروني أولاً';
         } else if (error.message.includes('Email link is invalid')) {
@@ -194,7 +234,7 @@ const HomePage = () => {
                     value={credentials.emailOrUsername}
                     onChange={(e) => setCredentials({ ...credentials, emailOrUsername: e.target.value })}
                     className="text-right"
-                    placeholder="أدخل البريد الإلكتروني" />
+                    placeholder="أدخل البريد الإلكتروني أو اسم المستخدم" />
 
                 </div>
 
@@ -202,15 +242,24 @@ const HomePage = () => {
                   <Label htmlFor="password" className="text-right block mb-2">
                     كلمة المرور
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={credentials.password}
-                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                    className="text-right"
-                    placeholder="أدخل كلمة المرور" />
-
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={credentials.password}
+                      onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                      className="text-right pr-10"
+                      placeholder="أدخل كلمة المرور" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="text-left">
