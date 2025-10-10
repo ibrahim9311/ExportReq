@@ -85,37 +85,37 @@ export default function EditRequirementsPage() {
       setLoading(true);
 
       // Load requirements
-      const { data: reqData, error: reqError } = await supabase
-        .from('export_requirements')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data: reqData, error: reqError } = await supabase.
+      from('export_requirements').
+      select('*').
+      order('created_at', { ascending: false });
 
       if (reqError) throw reqError;
       setRequirements(reqData || []);
 
       // Load countries
-      const { data: countryData, error: countryError } = await supabase
-        .from('countries')
-        .select('id, name')
-        .order('name');
+      const { data: countryData, error: countryError } = await supabase.
+      from('countries').
+      select('id, name').
+      order('name');
 
       if (countryError) throw countryError;
       setCountries(countryData || []);
 
       // Load crops
-      const { data: cropData, error: cropError } = await supabase
-        .from('crops')
-        .select('id, name')
-        .order('name');
+      const { data: cropData, error: cropError } = await supabase.
+      from('crops').
+      select('id, name').
+      order('name');
 
       if (cropError) throw cropError;
       setCrops(cropData || []);
 
       // Load short requirements
-      const { data: shortReqData, error: shortReqError } = await supabase
-        .from('short_requirements')
-        .select('id, name')
-        .order('name');
+      const { data: shortReqData, error: shortReqError } = await supabase.
+      from('short_requirements').
+      select('id, name').
+      order('name');
 
       if (shortReqError) throw shortReqError;
       setShortRequirements(shortReqData || []);
@@ -137,12 +137,12 @@ export default function EditRequirementsPage() {
     setIsAddMode(false);
 
     // Load linked short requirements
-    const { data: linkedData } = await supabase
-      .from('requirement_short_requirements')
-      .select('short_requirement_id')
-      .eq('requirement_id', requirement.id);
+    const { data: linkedData } = await supabase.
+    from('requirement_short_requirements').
+    select('short_requirement_id').
+    eq('requirement_id', requirement.id);
 
-    const linkedIds = linkedData?.map(item => item.short_requirement_id) || [];
+    const linkedIds = linkedData?.map((item) => item.short_requirement_id) || [];
 
     setFormData({
       country_id: requirement.country_id?.toString() || '',
@@ -194,67 +194,67 @@ export default function EditRequirementsPage() {
 
       if (isAddMode) {
         // Add new requirement
-        const { data: newReq, error: insertError } = await supabase
-          .from('export_requirements')
-          .insert([requirementData])
-          .select()
-          .single();
+        const { data: newReq, error: insertError } = await supabase.
+        from('export_requirements').
+        insert([requirementData]).
+        select().
+        single();
 
         if (insertError) throw insertError;
         requirementId = newReq.id;
 
         // Log creation
-        await supabase
-          .from('edit_logs')
-          .insert([{
-            requirement_id: requirementId,
-            user_id: user.id,
-            edit_date: new Date().toISOString(),
-            edit_type: 'CREATE',
-            notes: 'Requirement created'
-          }]);
+        await supabase.
+        from('edit_logs').
+        insert([{
+          requirement_id: requirementId,
+          user_id: user.id,
+          edit_date: new Date().toISOString(),
+          edit_type: 'CREATE',
+          notes: 'Requirement created'
+        }]);
 
       } else if (selectedRequirement) {
         // Update existing requirement
-        const { error: updateError } = await supabase
-          .from('export_requirements')
-          .update(requirementData)
-          .eq('id', selectedRequirement.id);
+        const { error: updateError } = await supabase.
+        from('export_requirements').
+        update(requirementData).
+        eq('id', selectedRequirement.id);
 
         if (updateError) throw updateError;
         requirementId = selectedRequirement.id;
 
         // Log update
-        await supabase
-          .from('edit_logs')
-          .insert([{
-            requirement_id: requirementId,
-            user_id: user.id,
-            edit_date: new Date().toISOString(),
-            edit_type: 'UPDATE',
-            notes: 'Requirement updated'
-          }]);
+        await supabase.
+        from('edit_logs').
+        insert([{
+          requirement_id: requirementId,
+          user_id: user.id,
+          edit_date: new Date().toISOString(),
+          edit_type: 'UPDATE',
+          notes: 'Requirement updated'
+        }]);
       } else {
         throw new Error('Invalid operation');
       }
 
       // Update short requirements links
       // Delete existing links
-      await supabase
-        .from('requirement_short_requirements')
-        .delete()
-        .eq('requirement_id', requirementId);
+      await supabase.
+      from('requirement_short_requirements').
+      delete().
+      eq('requirement_id', requirementId);
 
       // Insert new links
       if (formData.selectedShortRequirements.length > 0) {
-        const links = formData.selectedShortRequirements.map(shortReqId => ({
+        const links = formData.selectedShortRequirements.map((shortReqId) => ({
           requirement_id: requirementId,
           short_requirement_id: shortReqId
         }));
 
-        await supabase
-          .from('requirement_short_requirements')
-          .insert(links);
+        await supabase.
+        from('requirement_short_requirements').
+        insert(links);
       }
 
       toast({
@@ -283,27 +283,27 @@ export default function EditRequirementsPage() {
       if (!user) throw new Error('User not authenticated');
 
       // Log deletion
-      await supabase
-        .from('edit_logs')
-        .insert([{
-          requirement_id: selectedRequirement.id,
-          user_id: user.id,
-          edit_date: new Date().toISOString(),
-          edit_type: 'DELETE',
-          notes: 'Requirement deleted'
-        }]);
+      await supabase.
+      from('edit_logs').
+      insert([{
+        requirement_id: selectedRequirement.id,
+        user_id: user.id,
+        edit_date: new Date().toISOString(),
+        edit_type: 'DELETE',
+        notes: 'Requirement deleted'
+      }]);
 
       // Delete linked short requirements
-      await supabase
-        .from('requirement_short_requirements')
-        .delete()
-        .eq('requirement_id', selectedRequirement.id);
+      await supabase.
+      from('requirement_short_requirements').
+      delete().
+      eq('requirement_id', selectedRequirement.id);
 
       // Delete requirement
-      const { error } = await supabase
-        .from('export_requirements')
-        .delete()
-        .eq('id', selectedRequirement.id);
+      const { error } = await supabase.
+      from('export_requirements').
+      delete().
+      eq('id', selectedRequirement.id);
 
       if (error) throw error;
 
@@ -329,11 +329,11 @@ export default function EditRequirementsPage() {
     setSelectedRequirement(requirement);
 
     try {
-      const { data, error } = await supabase
-        .from('edit_logs')
-        .select('*')
-        .eq('requirement_id', requirement.id)
-        .order('edit_date', { ascending: false });
+      const { data, error } = await supabase.
+      from('edit_logs').
+      select('*').
+      eq('requirement_id', requirement.id).
+      order('edit_date', { ascending: false });
 
       if (error) throw error;
       setEditLogs(data || []);
@@ -349,33 +349,33 @@ export default function EditRequirementsPage() {
     }
   };
 
-  const filteredRequirements = requirements.filter(req => {
+  const filteredRequirements = requirements.filter((req) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       req.full_requirements?.toLowerCase().includes(searchLower) ||
       req.publication_number?.toLowerCase().includes(searchLower) ||
-      req.notes?.toLowerCase().includes(searchLower)
-    );
+      req.notes?.toLowerCase().includes(searchLower));
+
   });
 
   const getCountryName = (id: number | null) => {
     if (!id) return '-';
-    const country = countries.find(c => c.id === id);
+    const country = countries.find((c) => c.id === id);
     return country?.name || '-';
   };
 
   const getCropName = (id: number | null) => {
     if (!id) return '-';
-    const crop = crops.find(c => c.id === id);
+    const crop = crops.find((c) => c.id === id);
     return crop?.name || '-';
   };
 
   const toggleShortRequirement = (id: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      selectedShortRequirements: prev.selectedShortRequirements.includes(id)
-        ? prev.selectedShortRequirements.filter(reqId => reqId !== id)
-        : [...prev.selectedShortRequirements, id]
+      selectedShortRequirements: prev.selectedShortRequirements.includes(id) ?
+      prev.selectedShortRequirements.filter((reqId) => reqId !== id) :
+      [...prev.selectedShortRequirements, id]
     }));
   };
 
@@ -385,8 +385,8 @@ export default function EditRequirementsPage() {
         <div className="max-w-7xl mx-auto">
           <p className="text-center text-gray-600">Loading...</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -415,8 +415,8 @@ export default function EditRequirementsPage() {
                 placeholder="Search requirements..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+                className="pl-10" />
+
             </div>
             <Button onClick={openAddDialog} className="gap-2">
               <Plus className="w-4 h-4" />
@@ -440,15 +440,15 @@ export default function EditRequirementsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRequirements.length === 0 ? (
-                <TableRow>
+              {filteredRequirements.length === 0 ?
+              <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     No requirements found
                   </TableCell>
-                </TableRow>
-              ) : (
-                filteredRequirements.map((req) => (
-                  <TableRow key={req.id}>
+                </TableRow> :
+
+              filteredRequirements.map((req) =>
+              <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.id}</TableCell>
                     <TableCell>{getCountryName(req.country_id)}</TableCell>
                     <TableCell>{getCropName(req.crop_id)}</TableCell>
@@ -460,34 +460,34 @@ export default function EditRequirementsPage() {
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end">
                         <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => showHistory(req)}
-                        >
+                      size="sm"
+                      variant="outline"
+                      onClick={() => showHistory(req)}>
+
                           <History className="w-4 h-4" />
                         </Button>
                         <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => openEditDialog(req)}
-                        >
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openEditDialog(req)}>
+
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            setSelectedRequirement(req);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => {
+                        setSelectedRequirement(req);
+                        setDeleteDialogOpen(true);
+                      }}>
+
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+              )
+              }
             </TableBody>
           </Table>
         </div>
@@ -507,17 +507,17 @@ export default function EditRequirementsPage() {
                   <Label>Country</Label>
                   <Select
                     value={formData.country_id}
-                    onValueChange={(value) => setFormData({ ...formData, country_id: value })}
-                  >
+                    onValueChange={(value) => setFormData({ ...formData, country_id: value })}>
+
                     <SelectTrigger>
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {countries.map(country => (
-                        <SelectItem key={country.id} value={country.id.toString()}>
+                      {countries.map((country) =>
+                      <SelectItem key={country.id} value={country.id.toString()}>
                           {country.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -526,17 +526,17 @@ export default function EditRequirementsPage() {
                   <Label>Crop</Label>
                   <Select
                     value={formData.crop_id}
-                    onValueChange={(value) => setFormData({ ...formData, crop_id: value })}
-                  >
+                    onValueChange={(value) => setFormData({ ...formData, crop_id: value })}>
+
                     <SelectTrigger>
                       <SelectValue placeholder="Select crop" />
                     </SelectTrigger>
                     <SelectContent>
-                      {crops.map(crop => (
-                        <SelectItem key={crop.id} value={crop.id.toString()}>
+                      {crops.map((crop) =>
+                      <SelectItem key={crop.id} value={crop.id.toString()}>
                           {crop.name}
                         </SelectItem>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -548,8 +548,8 @@ export default function EditRequirementsPage() {
                   <Input
                     value={formData.publication_number}
                     onChange={(e) => setFormData({ ...formData, publication_number: e.target.value })}
-                    placeholder="Enter publication number"
-                  />
+                    placeholder="Enter publication number" />
+
                 </div>
 
                 <div>
@@ -558,8 +558,8 @@ export default function EditRequirementsPage() {
                     type="number"
                     value={formData.publication_year}
                     onChange={(e) => setFormData({ ...formData, publication_year: e.target.value })}
-                    placeholder="Enter year"
-                  />
+                    placeholder="Enter year" />
+
                 </div>
               </div>
 
@@ -569,8 +569,8 @@ export default function EditRequirementsPage() {
                   value={formData.full_requirements}
                   onChange={(e) => setFormData({ ...formData, full_requirements: e.target.value })}
                   placeholder="Enter full requirements"
-                  rows={5}
-                />
+                  rows={5} />
+
               </div>
 
               <div>
@@ -578,8 +578,8 @@ export default function EditRequirementsPage() {
                 <Input
                   value={formData.pdf_file_url}
                   onChange={(e) => setFormData({ ...formData, pdf_file_url: e.target.value })}
-                  placeholder="Enter PDF URL"
-                />
+                  placeholder="Enter PDF URL" />
+
               </div>
 
               <div>
@@ -588,28 +588,28 @@ export default function EditRequirementsPage() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Enter notes"
-                  rows={3}
-                />
+                  rows={3} />
+
               </div>
 
               <div>
                 <Label className="mb-3 block">Short Requirements</Label>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded">
-                  {shortRequirements.map(shortReq => (
-                    <div key={shortReq.id} className="flex items-center space-x-2">
+                  {shortRequirements.map((shortReq) =>
+                  <div key={shortReq.id} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`short-${shortReq.id}`}
-                        checked={formData.selectedShortRequirements.includes(shortReq.id)}
-                        onCheckedChange={() => toggleShortRequirement(shortReq.id)}
-                      />
+                      id={`short-${shortReq.id}`}
+                      checked={formData.selectedShortRequirements.includes(shortReq.id)}
+                      onCheckedChange={() => toggleShortRequirement(shortReq.id)} />
+
                       <label
-                        htmlFor={`short-${shortReq.id}`}
-                        className="text-sm cursor-pointer"
-                      >
+                      htmlFor={`short-${shortReq.id}`}
+                      className="text-sm cursor-pointer">
+
                         {shortReq.name}
                       </label>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -652,29 +652,29 @@ export default function EditRequirementsPage() {
             </DialogHeader>
 
             <div className="space-y-4">
-              {editLogs.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">No edit history available</p>
-              ) : (
-                <div className="space-y-2">
-                  {editLogs.map((log) => (
-                    <div key={log.id} className="border rounded-lg p-4 bg-gray-50">
+              {editLogs.length === 0 ?
+              <p className="text-center text-gray-500 py-8">No edit history available</p> :
+
+              <div className="space-y-2">
+                  {editLogs.map((log) =>
+                <div key={log.id} className="border rounded-lg p-4 bg-gray-50">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-semibold text-sm">{log.edit_type}</span>
                         <span className="text-xs text-gray-500">
                           {log.edit_date ? new Date(log.edit_date).toLocaleString() : '-'}
                         </span>
                       </div>
-                      {log.notes && (
-                        <p className="text-sm text-gray-600">{log.notes}</p>
-                      )}
+                      {log.notes &&
+                  <p className="text-sm text-gray-600">{log.notes}</p>
+                  }
                     </div>
-                  ))}
+                )}
                 </div>
-              )}
+              }
             </div>
           </DialogContent>
         </Dialog>
       </div>
-    </div>
-  );
+    </div>);
+
 }

@@ -3,22 +3,23 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Search, FileText, Filter, X, Download, Calendar, Home } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Search, FileText, Filter, X, Download, Calendar, Home, Check, ChevronsUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious } from
-'@/components/ui/pagination';
+  PaginationPrevious
+} from '@/components/ui/pagination';
 
 interface Country {
   id: number;
@@ -46,30 +47,24 @@ interface Requirement {
   crops?: Crop;
 }
 
-interface Summary {
-  id: number;
-  summary_text: string | null;
-  notes: string | null;
-}
-
 const ITEMS_PER_PAGE = 12;
 
 const SearchPage = () => {
   const navigate = useNavigate();
-  const [searchType, setSearchType] = useState<'requirements' | 'summaries'>('requirements');
   const [keyword, setKeyword] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<string>('all');
-  const [selectedCrop, setSelectedCrop] = useState<string>('all');
+  const [selectedCountry, setSelectedCountry] = useState<number | null>(null);
+  const [selectedCrop, setSelectedCrop] = useState<number | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
-  const [summaries, setSummaries] = useState<Summary[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingFilters, setLoadingFilters] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [selectedItem, setSelectedItem] = useState<Requirement | Summary | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Requirement | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [openCountry, setOpenCountry] = useState(false);
+  const [openCrop, setOpenCrop] = useState(false);
   const { toast } = useToast();
 
   // Load countries and crops on mount
@@ -80,19 +75,19 @@ const SearchPage = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchType, selectedCountry, selectedCrop, keyword]);
+  }, [selectedCountry, selectedCrop, keyword]);
 
   // Perform search when filters or page changes
   useEffect(() => {
     performSearch();
-  }, [searchType, selectedCountry, selectedCrop, keyword, currentPage]);
+  }, [selectedCountry, selectedCrop, keyword, currentPage]);
 
   const loadFilters = async () => {
     try {
       const [countriesRes, cropsRes] = await Promise.all([
-      supabase.from('countries').select('*').order('name_ar'),
-      supabase.from('crops').select('*').order('name_ar')]
-      );
+        supabase.from('countries').select('*').order('name_ar'),
+        supabase.from('crops').select('*').order('name_ar')
+      ]);
 
       if (countriesRes.error) throw countriesRes.error;
       if (cropsRes.error) throw cropsRes.error;
@@ -113,11 +108,7 @@ const SearchPage = () => {
   const performSearch = async () => {
     setLoading(true);
     try {
-      if (searchType === 'requirements') {
-        await searchRequirements();
-      } else {
-        await searchSummaries();
-      }
+      await searchRequirements();
     } catch (error: any) {
       toast({
         title: 'خطأ',
@@ -130,16 +121,16 @@ const SearchPage = () => {
   };
 
   const searchRequirements = async () => {
-    let query = supabase.
-    from('export_requirements').
-    select('*, countries(*), crops(*)', { count: 'exact' });
+    let query = supabase
+      .from('export_requirements')
+      .select('*, countries(*), crops(*)', { count: 'exact' });
 
-    // Apply filters
-    if (selectedCountry !== 'all') {
-      query = query.eq('country_id', parseInt(selectedCountry));
+    // Apply filters - support flexible search
+    if (selectedCountry !== null) {
+      query = query.eq('country_id', selectedCountry);
     }
-    if (selectedCrop !== 'all') {
-      query = query.eq('crop_id', parseInt(selectedCrop));
+    if (selectedCrop !== null) {
+      query = query.eq('crop_id', selectedCrop);
     }
     if (keyword.trim()) {
       query = query.or(
@@ -160,34 +151,13 @@ const SearchPage = () => {
     setTotalItems(count || 0);
   };
 
-  const searchSummaries = async () => {
-    let query = supabase.
-    from('summaries').
-    select('*', { count: 'exact' });
-
-    if (keyword.trim()) {
-      query = query.or(`summary_text.ilike.%${keyword}%,notes.ilike.%${keyword}%`);
-    }
-
-    const from = (currentPage - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
-    query = query.range(from, to);
-
-    const { data, error, count } = await query;
-
-    if (error) throw error;
-
-    setSummaries(data || []);
-    setTotalItems(count || 0);
-  };
-
   const clearFilters = () => {
     setKeyword('');
-    setSelectedCountry('all');
-    setSelectedCrop('all');
+    setSelectedCountry(null);
+    setSelectedCrop(null);
   };
 
-  const openDetails = (item: Requirement | Summary) => {
+  const openDetails = (item: Requirement) => {
     setSelectedItem(item);
     setDetailsOpen(true);
   };
@@ -216,50 +186,60 @@ const SearchPage = () => {
           <PaginationItem>
             <PaginationPrevious
               onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
           </PaginationItem>
-          {pages.map((page) =>
-          <PaginationItem key={page}>
+          {pages.map((page) => (
+            <PaginationItem key={page}>
               <PaginationLink
-              onClick={() => setCurrentPage(page)}
-              isActive={currentPage === page}
-              className="cursor-pointer">
-
+                onClick={() => setCurrentPage(page)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
                 {page}
               </PaginationLink>
             </PaginationItem>
-          )}
+          ))}
           <PaginationItem>
             <PaginationNext
               onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
           </PaginationItem>
         </PaginationContent>
-      </Pagination>);
+      </Pagination>
+    );
+  };
 
+  const getCountryName = (id: number | null) => {
+    if (!id) return 'جميع الدول';
+    return countries.find((c) => c.id === id)?.name_ar || 'جميع الدول';
+  };
+
+  const getCropName = (id: number | null) => {
+    if (!id) return 'جميع المحاصيل';
+    return crops.find((c) => c.id === id)?.name_ar || 'جميع المحاصيل';
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
-        {/* Back to Main Menu Button */}
+        {/* Back to Dashboard Button */}
         <div className="mb-6">
           <Button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             variant="outline"
-            className="gap-2 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors">
-
+            className="gap-2 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors"
+          >
             <Home className="w-4 h-4" />
-            العودة إلى القائمة الرئيسية
+            العودة إلى لوحة التحكم
           </Button>
         </div>
 
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-indigo-900 mb-2">البحث في الاشتراطات</h1>
-          <p className="text-gray-600">ابحث عن الاشتراطات والملخصات حسب الدولة والمحصول</p>
+          <p className="text-gray-600">ابحث عن الاشتراطات حسب الدولة والمحصول</p>
         </div>
 
         {/* Search Filters */}
@@ -281,175 +261,206 @@ const SearchPage = () => {
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                     placeholder="ابحث هنا..."
-                    className="pr-10" />
-
+                    className="pr-10"
+                  />
                 </div>
               </div>
 
-              {/* Country Filter */}
+              {/* Country Combobox */}
               <div>
                 <label className="text-sm font-medium mb-2 block">الدولة</label>
-                <Select value={selectedCountry} onValueChange={setSelectedCountry} disabled={loadingFilters}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="جميع الدول" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الدول</SelectItem>
-                    {countries.map((country) =>
-                    <SelectItem key={country.id} value={country.id.toString()}>
-                        {country.name_ar}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover open={openCountry} onOpenChange={setOpenCountry}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openCountry}
+                      className="w-full justify-between"
+                      disabled={loadingFilters}
+                    >
+                      {getCountryName(selectedCountry)}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="ابحث عن دولة..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="all"
+                            onSelect={() => {
+                              setSelectedCountry(null);
+                              setOpenCountry(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                selectedCountry === null ? 'opacity-100' : 'opacity-0'
+                              )}
+                            />
+                            جميع الدول
+                          </CommandItem>
+                          {countries.map((country) => (
+                            <CommandItem
+                              key={country.id}
+                              value={country.name_ar}
+                              onSelect={() => {
+                                setSelectedCountry(country.id);
+                                setOpenCountry(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  selectedCountry === country.id ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                              {country.name_ar}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              {/* Crop Filter */}
+              {/* Crop Combobox */}
               <div>
                 <label className="text-sm font-medium mb-2 block">المحصول</label>
-                <Select value={selectedCrop} onValueChange={setSelectedCrop} disabled={loadingFilters}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="جميع المحاصيل" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع المحاصيل</SelectItem>
-                    {crops.map((crop) =>
-                    <SelectItem key={crop.id} value={crop.id.toString()}>
-                        {crop.name_ar}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover open={openCrop} onOpenChange={setOpenCrop}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openCrop}
+                      className="w-full justify-between"
+                      disabled={loadingFilters}
+                    >
+                      {getCropName(selectedCrop)}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="ابحث عن محصول..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="all"
+                            onSelect={() => {
+                              setSelectedCrop(null);
+                              setOpenCrop(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                selectedCrop === null ? 'opacity-100' : 'opacity-0'
+                              )}
+                            />
+                            جميع المحاصيل
+                          </CommandItem>
+                          {crops.map((crop) => (
+                            <CommandItem
+                              key={crop.id}
+                              value={crop.name_ar}
+                              onSelect={() => {
+                                setSelectedCrop(crop.id);
+                                setOpenCrop(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  selectedCrop === crop.id ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                              {crop.name_ar}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
             {/* Clear Filters Button */}
-            {(keyword || selectedCountry !== 'all' || selectedCrop !== 'all') &&
-            <div className="mt-4">
+            {(keyword || selectedCountry !== null || selectedCrop !== null) && (
+              <div className="mt-4">
                 <Button variant="outline" onClick={clearFilters} className="gap-2">
                   <X className="w-4 h-4" />
                   مسح الفلاتر
                 </Button>
               </div>
-            }
+            )}
           </CardContent>
         </Card>
 
-        {/* Search Type Tabs */}
-        <Tabs value={searchType} onValueChange={(v) => setSearchType(v as any)} className="mb-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="requirements">الاشتراطات</TabsTrigger>
-            <TabsTrigger value="summaries">الملخصات</TabsTrigger>
-          </TabsList>
-
-          {/* Requirements Tab */}
-          <TabsContent value="requirements" className="mt-6">
-            {loading ?
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) =>
+        {/* Results */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
               <Card key={i}>
-                    <CardHeader>
-                      <Skeleton className="h-6 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </CardHeader>
-                    <CardContent>
-                      <Skeleton className="h-20 w-full" />
-                    </CardContent>
-                  </Card>
-              )}
-              </div> :
-            requirements.length === 0 ?
-            <Alert>
-                <AlertDescription>لا توجد نتائج مطابقة لعملية البحث</AlertDescription>
-              </Alert> :
-
-            <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {requirements.map((req) =>
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-20 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : requirements.length === 0 ? (
+          <Alert>
+            <AlertDescription>لا توجد نتائج مطابقة لعملية البحث</AlertDescription>
+          </Alert>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {requirements.map((req) => (
                 <Card
                   key={req.id}
                   className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => openDetails(req)}>
-
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-start gap-2">
-                          <FileText className="w-5 h-5 mt-1 flex-shrink-0 text-indigo-600" />
-                          <span className="line-clamp-2">
-                            {req.countries?.name_ar || 'غير محدد'} - {req.crops?.name_ar || 'غير محدد'}
-                          </span>
-                        </CardTitle>
-                        <CardDescription className="flex items-center gap-2">
-                          {req.publication_number &&
-                      <span className="text-xs">رقم النشر: {req.publication_number}</span>
-                      }
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {req.full_requirements || 'لا يوجد وصف'}
-                        </p>
-                        {req.publication_year &&
-                    <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                            <Calendar className="w-3 h-3" />
-                            {req.publication_year}
-                          </div>
-                    }
-                      </CardContent>
-                    </Card>
-                )}
-                </div>
-                {renderPagination()}
-              </>
-            }
-          </TabsContent>
-
-          {/* Summaries Tab */}
-          <TabsContent value="summaries" className="mt-6">
-            {loading ?
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) =>
-              <Card key={i}>
-                    <CardHeader>
-                      <Skeleton className="h-6 w-3/4" />
-                    </CardHeader>
-                    <CardContent>
-                      <Skeleton className="h-24 w-full" />
-                    </CardContent>
-                  </Card>
-              )}
-              </div> :
-            summaries.length === 0 ?
-            <Alert>
-                <AlertDescription>لا توجد نتائج مطابقة لعملية البحث</AlertDescription>
-              </Alert> :
-
-            <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {summaries.map((summary) =>
-                <Card
-                  key={summary.id}
-                  className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => openDetails(summary)}>
-
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FileText className="w-5 h-5 text-indigo-600" />
-                          ملخص #{summary.id}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-gray-600 line-clamp-4">
-                          {summary.summary_text || 'لا يوجد نص'}
-                        </p>
-                      </CardContent>
-                    </Card>
-                )}
-                </div>
-                {renderPagination()}
-              </>
-            }
-          </TabsContent>
-        </Tabs>
+                  onClick={() => openDetails(req)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-start gap-2">
+                      <FileText className="w-5 h-5 mt-1 flex-shrink-0 text-indigo-600" />
+                      <span className="line-clamp-2">
+                        {req.countries?.name_ar || 'غير محدد'} - {req.crops?.name_ar || 'غير محدد'}
+                      </span>
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-2 flex-wrap">
+                      {req.publication_number && (
+                        <span className="text-xs">رقم النشر: {req.publication_number}</span>
+                      )}
+                      {req.publication_year && (
+                        <span className="text-xs flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {req.publication_year}
+                        </span>
+                      )}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 line-clamp-3">
+                      {req.full_requirements || 'لا يوجد وصف'}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {renderPagination()}
+          </>
+        )}
 
         {/* Results Count */}
         <div className="text-center text-sm text-gray-600 mt-4">
@@ -462,82 +473,74 @@ const SearchPage = () => {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              {selectedItem && 'countries' in selectedItem ?
-              `${selectedItem.countries?.name_ar || 'غير محدد'} - ${selectedItem.crops?.name_ar || 'غير محدد'}` :
-              `ملخص #${selectedItem?.id}`}
+              {selectedItem &&
+                `${selectedItem.countries?.name_ar || 'غير محدد'} - ${selectedItem.crops?.name_ar || 'غير محدد'}`}
             </DialogTitle>
-            <DialogDescription>تفاصيل كاملة</DialogDescription>
+            <DialogDescription>تفاصيل كاملة للاشتراط</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {selectedItem && 'countries' in selectedItem ?
-            // Requirement Details
-            <>
-                {selectedItem.publication_number &&
-              <div>
+            {selectedItem && (
+              <>
+                {selectedItem.countries && (
+                  <div>
+                    <h3 className="font-semibold mb-1">الدولة</h3>
+                    <p className="text-gray-600">{selectedItem.countries.name_ar}</p>
+                  </div>
+                )}
+                {selectedItem.crops && (
+                  <div>
+                    <h3 className="font-semibold mb-1">المحصول</h3>
+                    <p className="text-gray-600">{selectedItem.crops.name_ar}</p>
+                  </div>
+                )}
+                {selectedItem.publication_number && (
+                  <div>
                     <h3 className="font-semibold mb-1">رقم النشر</h3>
                     <p className="text-gray-600">{selectedItem.publication_number}</p>
                   </div>
-              }
-                {selectedItem.publication_year &&
-              <div>
+                )}
+                {selectedItem.publication_year && (
+                  <div>
                     <h3 className="font-semibold mb-1">سنة النشر</h3>
                     <p className="text-gray-600">{selectedItem.publication_year}</p>
                   </div>
-              }
-                {selectedItem.full_requirements &&
-              <div>
+                )}
+                {selectedItem.full_requirements && (
+                  <div>
                     <h3 className="font-semibold mb-1">الاشتراطات الكاملة</h3>
                     <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.full_requirements}</p>
                   </div>
-              }
-                {selectedItem.notes &&
-              <div>
+                )}
+                {selectedItem.notes && (
+                  <div>
                     <h3 className="font-semibold mb-1">ملاحظات</h3>
                     <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.notes}</p>
                   </div>
-              }
-                {selectedItem.pdf_file_url &&
-              <div>
+                )}
+                {selectedItem.pdf_file_url && (
+                  <div>
                     <Button
-                  onClick={() => window.open(selectedItem.pdf_file_url!, '_blank')}
-                  className="gap-2">
-
+                      onClick={() => window.open(selectedItem.pdf_file_url!, '_blank')}
+                      className="gap-2"
+                    >
                       <Download className="w-4 h-4" />
                       تحميل ملف PDF
                     </Button>
                   </div>
-              }
-                {selectedItem.created_at &&
-              <div className="text-sm text-gray-500 pt-4 border-t">
+                )}
+                {selectedItem.created_at && (
+                  <div className="text-sm text-gray-500 pt-4 border-t">
                     تاريخ الإضافة: {new Date(selectedItem.created_at).toLocaleDateString('ar-SA')}
                   </div>
-              }
-              </> :
-
-            // Summary Details
-            selectedItem &&
-            <>
-                  {'summary_text' in selectedItem && selectedItem.summary_text &&
-              <div>
-                      <h3 className="font-semibold mb-1">نص الملخص</h3>
-                      <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.summary_text}</p>
-                    </div>
-              }
-                  {'notes' in selectedItem && selectedItem.notes &&
-              <div>
-                      <h3 className="font-semibold mb-1">ملاحظات</h3>
-                      <p className="text-gray-600 whitespace-pre-wrap">{selectedItem.notes}</p>
-                    </div>
-              }
-                </>
-
-            }
+                )}
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-    </div>);
-
+    </div>
+  );
 };
 
 export default SearchPage;

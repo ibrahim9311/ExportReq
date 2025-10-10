@@ -10,23 +10,23 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  TableRow } from
+'@/components/ui/table';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTitle } from
+'@/components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  SelectValue } from
+'@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
@@ -72,7 +72,7 @@ const AdminUsersPage = () => {
   const checkAdminAuth = async () => {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
+
       if (userError || !user) {
         toast({
           variant: 'destructive',
@@ -83,11 +83,11 @@ const AdminUsersPage = () => {
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role_id, roles(name)')
-        .eq('id', user.id)
-        .single();
+      const { data: profile, error: profileError } = await supabase.
+      from('profiles').
+      select('role_id, roles(name)').
+      eq('id', user.id).
+      single();
 
       if (profileError || !profile) {
         toast({
@@ -123,18 +123,18 @@ const AdminUsersPage = () => {
     setLoading(true);
     try {
       // Fetch roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('roles')
-        .select('*')
-        .order('name');
+      const { data: rolesData, error: rolesError } = await supabase.
+      from('roles').
+      select('*').
+      order('name');
 
       if (rolesError) throw rolesError;
       setRoles(rolesData || []);
 
       // Fetch users with related data
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
+      const { data: profilesData, error: profilesError } = await supabase.
+      from('profiles').
+      select(`
           id,
           username_en,
           full_name_ar,
@@ -144,24 +144,24 @@ const AdminUsersPage = () => {
           is_active,
           created_at,
           roles(name)
-        `)
-        .order('created_at', { ascending: false });
+        `).
+      order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
 
       // Get auth emails for each user
-      const userIds = profilesData?.map(p => p.id) || [];
+      const userIds = profilesData?.map((p) => p.id) || [];
       const usersWithData: UserData[] = [];
 
       for (const profile of profilesData || []) {
         // Get subscription info
-        const { data: subData } = await supabase
-          .from('user_subscriptions')
-          .select('end_date')
-          .eq('user_id', profile.id)
-          .order('end_date', { ascending: false })
-          .limit(1)
-          .single();
+        const { data: subData } = await supabase.
+        from('user_subscriptions').
+        select('end_date').
+        eq('user_id', profile.id).
+        order('end_date', { ascending: false }).
+        limit(1).
+        single();
 
         // Get email from auth metadata or use a placeholder
         // Note: We can't directly access auth.users, so we'll use the username or a workaround
@@ -200,16 +200,16 @@ const AdminUsersPage = () => {
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(user => 
-        user.username_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.full_name_ar.includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((user) =>
+      user.username_en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.full_name_ar.includes(searchTerm) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Apply role filter
     if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role_id === parseInt(roleFilter));
+      filtered = filtered.filter((user) => user.role_id === parseInt(roleFilter));
     }
 
     setFilteredUsers(filtered);
@@ -225,10 +225,10 @@ const AdminUsersPage = () => {
     if (!selectedUser || !selectedRole) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ role_id: parseInt(selectedRole) })
-        .eq('id', selectedUser.id);
+      const { error } = await supabase.
+      from('profiles').
+      update({ role_id: parseInt(selectedRole) }).
+      eq('id', selectedUser.id);
 
       if (error) throw error;
 
@@ -251,10 +251,10 @@ const AdminUsersPage = () => {
 
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: !currentStatus })
-        .eq('id', userId);
+      const { error } = await supabase.
+      from('profiles').
+      update({ is_active: !currentStatus }).
+      eq('id', userId);
 
       if (error) throw error;
 
@@ -301,8 +301,8 @@ const AdminUsersPage = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">جاري التحميل...</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -330,8 +330,8 @@ const AdminUsersPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+          transition={{ duration: 0.5 }}>
+
           {/* Filters Section */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div className="grid md:grid-cols-3 gap-4">
@@ -345,8 +345,8 @@ const AdminUsersPage = () => {
                   placeholder="ابحث بالاسم أو البريد الإلكتروني"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="text-right"
-                />
+                  className="text-right" />
+
               </div>
               
               <div>
@@ -359,20 +359,20 @@ const AdminUsersPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">جميع الأدوار</SelectItem>
-                    {roles.map(role => (
-                      <SelectItem key={role.id} value={role.id.toString()}>
+                    {roles.map((role) =>
+                    <SelectItem key={role.id} value={role.id.toString()}>
                         {role.name}
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-end">
-                <Button 
-                  onClick={loadData} 
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
+                <Button
+                  onClick={loadData}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700">
+
                   تحديث البيانات
                 </Button>
               </div>
@@ -402,15 +402,15 @@ const AdminUsersPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.length === 0 ? (
-                    <TableRow>
+                  {filteredUsers.length === 0 ?
+                  <TableRow>
                       <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                         لا يوجد مستخدمين
                       </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
+                    </TableRow> :
+
+                  filteredUsers.map((user) =>
+                  <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username_en}</TableCell>
                         <TableCell>{user.full_name_ar || '-'}</TableCell>
                         <TableCell>{user.email}</TableCell>
@@ -424,9 +424,9 @@ const AdminUsersPage = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Switch
-                              checked={user.is_active}
-                              onCheckedChange={() => handleToggleActive(user.id, user.is_active)}
-                            />
+                          checked={user.is_active}
+                          onCheckedChange={() => handleToggleActive(user.id, user.is_active)} />
+
                             <span className="text-sm">
                               {user.is_active ? 'نشط' : 'معطل'}
                             </span>
@@ -434,16 +434,16 @@ const AdminUsersPage = () => {
                         </TableCell>
                         <TableCell>
                           <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditRole(user)}
-                          >
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditRole(user)}>
+
                             تعديل الدور
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                  )
+                  }
                 </TableBody>
               </Table>
             </div>
@@ -471,11 +471,11 @@ const AdminUsersPage = () => {
                   <SelectValue placeholder="اختر الدور" />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map(role => (
-                    <SelectItem key={role.id} value={role.id.toString()}>
+                  {roles.map((role) =>
+                  <SelectItem key={role.id} value={role.id.toString()}>
                       {role.name}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -491,8 +491,8 @@ const AdminUsersPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>);
+
 };
 
 export default AdminUsersPage;

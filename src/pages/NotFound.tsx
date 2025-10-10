@@ -47,7 +47,7 @@ const NotFound = () => {
           transition={{ duration: 0.5, delay: 0.6 }}>
 
           <Button asChild variant="default" size="lg">
-            <a href="/">Back to Home</a>
+            <a href="/dashboard">Back to Dashboard</a>
           </Button>
         </motion.div>
       </motion.div>

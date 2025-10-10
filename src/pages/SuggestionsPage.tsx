@@ -64,11 +64,11 @@ const SuggestionsPage = () => {
       setUserId(user.id);
 
       // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('role_id, full_name_ar')
-        .eq('id', user.id)
-        .single();
+      const { data: profileData } = await supabase.
+      from('profiles').
+      select('role_id, full_name_ar').
+      eq('id', user.id).
+      single();
 
       if (profileData) {
         setProfile(profileData);
@@ -85,13 +85,13 @@ const SuggestionsPage = () => {
 
   const loadFeedback = async (uid: string, roleId: number) => {
     try {
-      let query = supabase
-        .from('feedback')
-        .select(`
+      let query = supabase.
+      from('feedback').
+      select(`
           *,
           profiles (full_name_ar)
-        `)
-        .order('created_at', { ascending: false });
+        `).
+      order('created_at', { ascending: false });
 
       // Users see only their feedback, admins see all
       if (roleId < 4) {
@@ -128,13 +128,13 @@ const SuggestionsPage = () => {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('feedback')
-        .insert([{
-          user_id: userId,
-          comment_text: newFeedback.comment_text,
-          notes: `الأولوية: ${getPriorityLabel(newFeedback.priority)}`
-        }]);
+      const { error } = await supabase.
+      from('feedback').
+      insert([{
+        user_id: userId,
+        comment_text: newFeedback.comment_text,
+        notes: `الأولوية: ${getPriorityLabel(newFeedback.priority)}`
+      }]);
 
       if (error) throw error;
 
@@ -164,10 +164,10 @@ const SuggestionsPage = () => {
       const currentNotes = selectedFeedback.notes || '';
       const updatedNotes = currentNotes + '\n\n--- رد الإدارة ---\n' + adminResponse;
 
-      const { error } = await supabase
-        .from('feedback')
-        .update({ notes: updatedNotes })
-        .eq('id', selectedFeedback.id);
+      const { error } = await supabase.
+      from('feedback').
+      update({ notes: updatedNotes }).
+      eq('id', selectedFeedback.id);
 
       if (error) throw error;
 
@@ -233,8 +233,8 @@ const SuggestionsPage = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">جاري التحميل...</p>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -286,8 +286,8 @@ const SuggestionsPage = () => {
                       <Label htmlFor="priority">الأولوية</Label>
                       <Select
                         value={newFeedback.priority}
-                        onValueChange={(value) => setNewFeedback({ ...newFeedback, priority: value })}
-                      >
+                        onValueChange={(value) => setNewFeedback({ ...newFeedback, priority: value })}>
+
                         <SelectTrigger>
                           <SelectValue placeholder="اختر الأولوية" />
                         </SelectTrigger>
@@ -323,26 +323,26 @@ const SuggestionsPage = () => {
                         placeholder="اكتب اقتراحك أو ملاحظتك بالتفصيل..."
                         rows={6}
                         className="resize-none"
-                        required
-                      />
+                        required />
+
                     </div>
 
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={submitting}
-                    >
-                      {submitting ? (
-                        <>
+                      disabled={submitting}>
+
+                      {submitting ?
+                      <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
                           جاري الإرسال...
-                        </>
-                      ) : (
-                        <>
+                        </> :
+
+                      <>
                           <Send className="w-4 h-4 ml-2" />
                           إرسال الاقتراح
                         </>
-                      )}
+                      }
                     </Button>
                   </form>
                 </CardContent>
@@ -364,16 +364,16 @@ const SuggestionsPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {feedbackList.length === 0 ? (
-                    <div className="text-center py-12">
+                  {feedbackList.length === 0 ?
+                  <div className="text-center py-12">
                       <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600">لا توجد اقتراحات حالياً</p>
                       <p className="text-sm text-gray-500 mt-2">كن أول من يضيف اقتراح!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {feedbackList.map((feedback) => (
-                        <Dialog key={feedback.id}>
+                    </div> :
+
+                  <div className="space-y-4">
+                      {feedbackList.map((feedback) =>
+                    <Dialog key={feedback.id}>
                           <DialogTrigger asChild>
                             <Card className="cursor-pointer hover:shadow-lg transition-shadow">
                               <CardContent className="p-4">
@@ -384,12 +384,12 @@ const SuggestionsPage = () => {
                                         <Star className="w-3 h-3 ml-1" />
                                         {getPriorityLabel(extractPriority(feedback.notes))}
                                       </Badge>
-                                      {isAdmin && feedback.profiles && (
-                                        <Badge variant="outline">
+                                      {isAdmin && feedback.profiles &&
+                                  <Badge variant="outline">
                                           <User className="w-3 h-3 ml-1" />
                                           {feedback.profiles.full_name_ar}
                                         </Badge>
-                                      )}
+                                  }
                                     </div>
                                     <p className="text-gray-800 line-clamp-2">{feedback.comment_text}</p>
                                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
@@ -397,12 +397,12 @@ const SuggestionsPage = () => {
                                         <Calendar className="w-4 h-4" />
                                         {formatDate(feedback.created_at)}
                                       </span>
-                                      {feedback.notes && feedback.notes.includes('رد الإدارة') && (
-                                        <Badge variant="default" className="text-xs">
+                                      {feedback.notes && feedback.notes.includes('رد الإدارة') &&
+                                  <Badge variant="default" className="text-xs">
                                           <CheckCircle className="w-3 h-3 ml-1" />
                                           تم الرد
                                         </Badge>
-                                      )}
+                                  }
                                     </div>
                                   </div>
                                   <Button variant="ghost" size="sm">
@@ -425,12 +425,12 @@ const SuggestionsPage = () => {
                                   <Star className="w-3 h-3 ml-1" />
                                   الأولوية: {getPriorityLabel(extractPriority(feedback.notes))}
                                 </Badge>
-                                {isAdmin && feedback.profiles && (
-                                  <Badge variant="outline">
+                                {isAdmin && feedback.profiles &&
+                            <Badge variant="outline">
                                     <User className="w-3 h-3 ml-1" />
                                     {feedback.profiles.full_name_ar}
                                   </Badge>
-                                )}
+                            }
                               </div>
 
                               <div className="bg-gray-50 p-4 rounded-lg">
@@ -443,51 +443,51 @@ const SuggestionsPage = () => {
                                 {formatDate(feedback.created_at)}
                               </div>
 
-                              {feedback.notes && (
-                                <div className="bg-blue-50 p-4 rounded-lg">
+                              {feedback.notes &&
+                          <div className="bg-blue-50 p-4 rounded-lg">
                                   <p className="text-sm text-blue-800 font-semibold mb-2">الملاحظات والردود:</p>
                                   <p className="text-gray-800 whitespace-pre-wrap text-sm">{feedback.notes}</p>
                                 </div>
-                              )}
+                          }
 
-                              {isAdmin && (
-                                <div className="border-t pt-4 mt-4">
+                              {isAdmin &&
+                          <div className="border-t pt-4 mt-4">
                                   <Label htmlFor="admin-response">إضافة رد</Label>
                                   <Textarea
-                                    id="admin-response"
-                                    value={adminResponse}
-                                    onChange={(e) => setAdminResponse(e.target.value)}
-                                    placeholder="اكتب ردك على الاقتراح..."
-                                    rows={4}
-                                    className="mt-2"
-                                  />
+                              id="admin-response"
+                              value={adminResponse}
+                              onChange={(e) => setAdminResponse(e.target.value)}
+                              placeholder="اكتب ردك على الاقتراح..."
+                              rows={4}
+                              className="mt-2" />
+
                                   <Button
-                                    onClick={() => {
-                                      setSelectedFeedback(feedback);
-                                      handleAdminResponse();
-                                    }}
-                                    className="mt-3 w-full"
-                                    disabled={!adminResponse.trim()}
-                                  >
+                              onClick={() => {
+                                setSelectedFeedback(feedback);
+                                handleAdminResponse();
+                              }}
+                              className="mt-3 w-full"
+                              disabled={!adminResponse.trim()}>
+
                                     <Send className="w-4 h-4 ml-2" />
                                     إرسال الرد
                                   </Button>
                                 </div>
-                              )}
+                          }
                             </div>
                           </DialogContent>
                         </Dialog>
-                      ))}
+                    )}
                     </div>
-                  )}
+                  }
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
         </div>
       </main>
-    </div>
-  );
+    </div>);
+
 };
 
 export default SuggestionsPage;
