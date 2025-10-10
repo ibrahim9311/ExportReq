@@ -15,6 +15,22 @@ type PageProps = {
   };
 };
 
+// Define a precise type for the feedback data
+type Feedback = {
+  id: number;
+  comment_text: string | null;
+  created_at: string;
+  profiles: {
+    full_name_ar: string | null;
+    username_en: string | null;
+  };
+  export_requirements: {
+    id: number;
+    countries: { id: number; name_ar: string } | null;
+    crops: { id: number; name_ar: string } | null;
+  } | null;
+};
+
 export default async function SuggestionsPage({ searchParams }: PageProps) {
   const supabase = createClient();
 
@@ -75,7 +91,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
     query = query.eq('export_requirements.crop_id', crop);
   }
 
-  const { data: feedbacks, error } = await query;
+  const { data: feedbacks, error } = await query.returns<Feedback[]>();
 
   if (error) {
     console.error("Error fetching feedback:", error);
@@ -103,7 +119,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <User size={14} />
-                    {(fb.profiles as any).full_name_ar || (fb.profiles as any).username_en}
+                    {fb.profiles.full_name_ar || fb.profiles.username_en}
                   </span>
                   <span className="flex items-center gap-1"><Calendar size={14} /> {format(new Date(fb.created_at), 'yyyy/MM/dd - HH:mm')}</span>
                 </div>
