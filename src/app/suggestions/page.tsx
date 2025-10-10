@@ -60,7 +60,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
       profiles ( full_name_ar, username_en ),
       export_requirements (
         id,
-         countries!inner ( id, name_ar ),
+        countries!inner ( id, name_ar ),
         crops!inner ( id, name_ar )
       )
     `)
@@ -112,7 +112,7 @@ export default async function SuggestionsPage({ searchParams }: PageProps) {
                 <p className="whitespace-pre-wrap">{fb.comment_text}</p>
               </CardContent>
               <CardFooter className="bg-muted/50 p-3 text-sm">
-               <Link href={`/search?country=${fb.export_requirements?.countries?.id}&crop=${fb.export_requirements?.crops?.id}`} className="flex items-center gap-1 hover:underline">
+                <Link href={`/search?country=${fb.export_requirements?.countries?.id}&crop=${fb.export_requirements?.crops?.id}`} className="flex items-center gap-1 hover:underline">
                   <Target size={14} /> ملاحظة على اشتراط: {fb.export_requirements?.countries?.name_ar} - {fb.export_requirements?.crops?.name_ar}
                 </Link>
               </CardFooter>

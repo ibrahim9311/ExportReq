@@ -71,7 +71,7 @@ export default function EditRequirementPage() {
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
         setCountryName((requirementData.countries as any)?.[0]?.name_ar || (requirementData.countries as any)?.name_ar || '');
         setCropName((requirementData.crops as any)?.[0]?.name_ar || (requirementData.crops as any)?.name_ar || '');
-      } else if (reqError) {
+
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
       }
