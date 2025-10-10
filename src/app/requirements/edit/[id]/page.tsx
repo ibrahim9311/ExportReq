@@ -69,8 +69,8 @@ export default function EditRequirementPage() {
         setPublicationYear(requirementData.publication_year || '');
         setExistingPdfUrl(requirementData.pdf_file_url);
         setSelectedShortReqs(requirementData.requirement_short_requirements.map(r => r.short_requirement_id));
-        setCountryName(requirementData.countries?.name_ar || '');
-        setCropName(requirementData.crops?.name_ar || '');
+        setCountryName(Array.isArray(requirementData.countries) ? requirementData.countries[0]?.name_ar || '' : requirementData.countries?.name_ar || '');
+        setCropName(Array.isArray(requirementData.crops) ? requirementData.crops[0]?.name_ar || '' : requirementData.crops?.name_ar || '');
       } else if (reqError) {
         toast.error("خطأ في جلب البيانات", { description: "لم يتم العثور على الاشتراط المطلوب." });
         router.push('/requirements');
